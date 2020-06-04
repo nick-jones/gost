@@ -33,15 +33,14 @@ the default, but can be prevented).
 As a quick measure we can run `gost` against itself and obtain strings referenced in `main.go`:
 
 ```
-$ go build            
+$ go build
 $ ./gost gost | rg 'main\.'
-121b656: "gost" → main.main+149(11b1da5) 
-121c96a: "format" → main.run+274(11b2012) 
-121e5a1: "template" → main.main+67(11b1d53) 
-122374b: "failed to open file: %w" → main.run+586(11b214a) 
-1225734: "failed to execute template: %w" → main.run+1329(11b2431) 
-1225bb4: "failed to parse format flag: %w" → main.run+386(11b2082) 
-12266c2: "failed to search instructions: %w" → main.run+791(11b2217) 
-122aae5: "template string for printing the results (format is text/template)" → main.main+85(11b1d65) 
-122b06c: "{{printf \"%x: %q\" .Addr .Value}} → {{range $i, $e := .Refs}}\n{{- if le $i 5}}{{ printf \"%s+%d(%x) \" .Symbol.Name .Offset .Addr }}{{end}}\n{{- end}}\n{{- if gt (len .Refs) 5}}... (truncated, {{len .Refs}} total){{- end -}}\n" → main.main+104(11b1d78)
+12244b9: "gost" → /Users/nicholas/Dev/gost/main.go:23 
+1227409: "template" → /Users/nicholas/Dev/gost/main.go:26 
+122c621: "failed to open file: %w" → /Users/nicholas/Dev/gost/main.go:50 
+122e63d: "failed to execute template: %w" → /Users/nicholas/Dev/gost/main.go:63 
+122eadc: "failed to parse format flag: %w" → /Users/nicholas/Dev/gost/main.go:45 
+122f5ea: "failed to search instructions: %w" → /Users/nicholas/Dev/gost/main.go:57 
+1233a0d: "template string for printing the results (format is text/template)" → /Users/nicholas/Dev/gost/main.go:27 
+1233f94: "{{printf \"%x: %q\" .Addr .Value}} → {{range $i, $e := .Refs}}\n{{- if le $i 5}}{{ printf \"%s:%d \" .File .Line }}{{end}}\n{{- end}}\n{{- if gt (len .Refs) 5}}... (truncated, {{len .Refs}} total){{- end -}}\n" → /Users/nicholas/Dev/gost/main.go:28 
 ```
