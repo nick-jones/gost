@@ -13,7 +13,7 @@ import (
 )
 
 const tmpl = `{{printf "%x: %q" .Addr .Value}} → {{range $i, $e := .Refs}}
-{{- if le $i 5}}{{ printf "%s+%d(%x) " .Symbol.Name .Offset .Addr }}{{end}}
+{{- if le $i 5}}{{ printf "%s:%d " .File .Line }}{{end}}
 {{- end}}
 {{- if gt (len .Refs) 5}}... (truncated, {{len .Refs}} total){{- end -}}
 `

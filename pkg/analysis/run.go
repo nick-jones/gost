@@ -20,6 +20,8 @@ type Reference struct {
 	Addr   uint64     // address where the reference is made
 	Symbol exe.Symbol // closest symbol
 	Offset int        // offset from the closes symbol
+	File   string     // file that contains the reference
+	Line   int        // line number of the above file
 }
 
 const symStringTable = "go.string.*"
@@ -57,6 +59,11 @@ func buildResults(candidates []analysis.Candidate, f exe.File, stringTable exe.S
 		return nil, fmt.Errorf("failed to locate section for range: %w", err)
 	}
 
+	symtab, err := f.GoSymbolTable()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load symbol table: %w", err)
+	}
+
 	results := make([]Result, len(candidates))
 	for i, candidate := range candidates {
 		buf := make([]byte, candidate.Len)
@@ -72,10 +79,13 @@ func buildResults(candidates []analysis.Candidate, f exe.File, stringTable exe.S
 			if err != nil {
 				return nil, err
 			}
+			file, line, _ := symtab.PCToLine(addr)
 			res.Refs = append(res.Refs, Reference{
 				Addr:   addr,
 				Symbol: sym,
 				Offset: int(addr) - int(sym.Range.Start),
+				File:   file,
+				Line:   line,
 			})
 		}
 		results[i] = res

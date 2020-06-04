@@ -1,6 +1,7 @@
 package exe
 
 import (
+	"debug/gosym"
 	"debug/macho"
 	"encoding/binary"
 	"fmt"
@@ -55,6 +56,9 @@ func (m *Macho) RODataSection() (Section, error) {
 // section searches for a section by name
 func (m *Macho) section(name string) (Section, error) {
 	sect := m.f.Section(name)
+	if sect == nil {
+		return Section{}, fmt.Errorf("failed to locate section %s", name)
+	}
 	return Section{
 		Name: sect.Name,
 		AddrRange: address.Range{
@@ -165,6 +169,34 @@ func (m *Macho) SymbolsInRange(addrRange address.Range) ([]Symbol, error) {
 		anchor = sym.Value
 	}
 	return nil, fmt.Errorf("symbols reach boundary of range, unhandled currently")
+}
+
+// SymbolTable returns the decoded Go symbol table
+func (m *Macho) GoSymbolTable() (*gosym.Table, error) {
+	txt, err := m.section("__text")
+	if err != nil {
+		return nil, err
+	}
+
+	sect, err := m.section("__gosymtab")
+	if err != nil {
+		return nil, err
+	}
+	symtab, err := sect.Data()
+	if err != nil {
+		return nil, err
+	}
+
+	sect, err = m.section("__gopclntab")
+	if err != nil {
+		return nil, err
+	}
+	pclntab, err := sect.Data()
+	if err != nil {
+		return nil, err
+	}
+
+	return gosym.NewTable(symtab, gosym.NewLineTable(pclntab, txt.AddrRange.Start))
 }
 
 // Close closes the underlying file

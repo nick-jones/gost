@@ -1,6 +1,7 @@
 package exe
 
 import (
+	"debug/gosym"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -17,6 +18,7 @@ type File interface {
 	Symbol(name string) (Symbol, error)
 	SymbolForAddress(addr uint64) (Symbol, error)
 	SymbolsInRange(address.Range) ([]Symbol, error)
+	GoSymbolTable() (*gosym.Table, error)
 	io.Closer
 }
 
