@@ -17,7 +17,7 @@ that, `strings` doesn't perform well with Go binaries; it'll print long incohere
 aren't easily parsed.  
 
 Gost uses a number of heuristics to extract strings from binaries; these are imperfect by nature, so be warned, results
-may vary! For more information about how Go handles strings, see [docs/strings.md]
+may vary! For more information about how Go handles strings, see [docs/strings.md](docs/strings.md)
 
 ## Installing
 
