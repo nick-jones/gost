@@ -178,16 +178,7 @@ func (m *Macho) GoSymbolTable() (*gosym.Table, error) {
 		return nil, err
 	}
 
-	sect, err := m.section("__gosymtab")
-	if err != nil {
-		return nil, err
-	}
-	symtab, err := sect.Data()
-	if err != nil {
-		return nil, err
-	}
-
-	sect, err = m.section("__gopclntab")
+	sect, err := m.section("__gopclntab")
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +187,7 @@ func (m *Macho) GoSymbolTable() (*gosym.Table, error) {
 		return nil, err
 	}
 
-	return gosym.NewTable(symtab, gosym.NewLineTable(pclntab, txt.AddrRange.Start))
+	return gosym.NewTable(nil, gosym.NewLineTable(pclntab, txt.AddrRange.Start))
 }
 
 // Close closes the underlying file
