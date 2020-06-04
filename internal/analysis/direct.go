@@ -46,7 +46,7 @@ func FindDirectReferences(f exe.File, strRange address.Range) ([]Candidate, erro
 		arg2 = int(data[m.Index+matcher.arg2Pos])
 
 		// the string and length are always passed around together. Since the Go compiler uses the stack to pass
-		// arguments (i.e. doesn't use System V), we can use this as an additional heuristic; a point to the string
+		// arguments (i.e. doesn't use System V), we can use this as an additional heuristic; a pointer to the string
 		// value should be set into the stack. The length should be set +8 bytes from that.
 		if arg1%8 == 0 && arg2 == arg1+8 {
 			relAddr := txt.AddrRange.Start + uint64(m.Index+matcher.offsetPos+matcher.offsetLen)
