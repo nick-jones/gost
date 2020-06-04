@@ -132,45 +132,6 @@ func (m *Macho) SymbolForAddress(addr uint64) (Symbol, error) {
 	return Symbol{}, fmt.Errorf("symbol for address %x not found", addr)
 }
 
-// SymbolsInRange resolves all symbols in the supplied address range. The ranges of the symbols are best guesses. Any
-// symbols that fall outside of the range (even by best guess semantics) are excluded.
-func (m *Macho) SymbolsInRange(addrRange address.Range) ([]Symbol, error) {
-	var (
-		found  []Symbol
-		buf    []Symbol
-		anchor uint64
-	)
-	for _, sym := range m.symbols {
-		if sym.Value < addrRange.Start {
-			continue // ignore any below the range start
-		}
-		if sym.Value > addrRange.End {
-			// once we're exceeded the end of the range, return. NB we intentionally ignore any buffered as these fall
-			// outside of the range, so can be discarded
-			return found, nil
-		}
-
-		// symbols can be duplicated in terms of addresses, so we have to wait until the address moves
-		// beyond the anchor value
-		if sym.Value != anchor {
-			// play buffered into found
-			for _, b := range buf {
-				b.Range.End = sym.Value - 1
-				found = append(found, b)
-			}
-			buf = buf[:0] // clear the slice
-		}
-
-		buf = append(buf, Symbol{
-			Name:  sym.Name,
-			Range: address.Range{Start: sym.Value},
-		})
-
-		anchor = sym.Value
-	}
-	return nil, fmt.Errorf("symbols reach boundary of range, unhandled currently")
-}
-
 // SymbolTable returns the decoded Go symbol table
 func (m *Macho) GoSymbolTable() (*gosym.Table, error) {
 	txt, err := m.section("__text")

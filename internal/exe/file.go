@@ -17,7 +17,6 @@ type File interface {
 	SectionContainingRange(address.Range) (Section, error)
 	Symbol(name string) (Symbol, error)
 	SymbolForAddress(addr uint64) (Symbol, error)
-	SymbolsInRange(address.Range) ([]Symbol, error)
 	GoSymbolTable() (*gosym.Table, error)
 	io.Closer
 }
