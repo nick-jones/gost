@@ -13,8 +13,8 @@ At the moment it has a number of limitations:
 
 _Why not use bin-utils/strings?_ Good question. Go handles strings a little differently to languages such as C in that 
 it doesn't use NULL terminated strings. Instead, it carries the length of a given string, along with a pointer. Due to
-that, `strings` doesn't perform well with Go binaries; it'll print long incoherent strings and joined up strings that
-aren't easily parsed.  
+that, `strings` doesn't perform well with Go binaries; it'll print long incoherent and joined up strings that aren't
+easily parsed.  
 
 Gost uses a number of heuristics to extract strings from binaries; these are imperfect by nature, so be warned, results
 may vary! For more information about how Go handles strings, see [docs/strings.md](docs/strings.md)
@@ -30,7 +30,7 @@ GO111MODULE=on go get github.com/nick-jones/gost
 Simply supply a path to a binary as an argument. Note that if the binary must have been compiled with symbols (which is
 the default, but can be prevented).
 
-As a quick measure we can run `gost` in itself and obtain strings referenced in `main.go`:
+As a quick measure we can run `gost` against itself and obtain strings referenced in `main.go`:
 
 ```
 $ go build            
