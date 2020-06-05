@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"debug/gosym"
 	"fmt"
 	"sort"
 
@@ -59,9 +60,9 @@ func buildResults(candidates []analysis.Candidate, f exe.File, stringTable exe.S
 		return nil, fmt.Errorf("failed to locate section for range: %w", err)
 	}
 
-	symtab, err := f.GoSymbolTable()
+	symtab, err := createSymtab(f)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load symbol table: %w", err)
+		return nil, fmt.Errorf("failed to create symtab: %w", err)
 	}
 
 	results := make([]Result, len(candidates))
@@ -113,4 +114,26 @@ func dedupeCandidates(candidates []analysis.Candidate) []analysis.Candidate {
 		deduped = append(deduped, res)
 	}
 	return deduped
+}
+
+func createSymtab(f exe.File) (*gosym.Table, error) {
+	txt, err := f.TextSection()
+	if err != nil {
+		return nil, err
+	}
+
+	pclntab, err := f.PCLNTabSection()
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := pclntab.Data()
+	if err != nil {
+		return nil, err
+	}
+
+	// `gosym.LineTable` doesn't provide file information. So we have to wrap it with `gosym.Table`, which does. Not
+	// need to provide symtab data - and in fact, the symtab section is zero size in Mach-O binaries, so I'm assuming
+	// it is no longer populated.
+	return gosym.NewTable(nil, gosym.NewLineTable(data, txt.AddrRange.Start))
 }

@@ -1,7 +1,6 @@
 package exe
 
 import (
-	"debug/gosym"
 	"debug/macho"
 	"encoding/binary"
 	"fmt"
@@ -51,6 +50,11 @@ func (m *Macho) TextSection() (Section, error) {
 // TextSection locates and returns __rodata
 func (m *Macho) RODataSection() (Section, error) {
 	return m.section("__rodata")
+}
+
+// PCLNTabSection locates and returns __gopclntab
+func (m *Macho) PCLNTabSection() (Section, error) {
+	return m.section("__gopclntab")
 }
 
 // section searches for a section by name
@@ -130,25 +134,6 @@ func (m *Macho) SymbolForAddress(addr uint64) (Symbol, error) {
 		previous = sym
 	}
 	return Symbol{}, fmt.Errorf("symbol for address %x not found", addr)
-}
-
-// SymbolTable returns the decoded Go symbol table
-func (m *Macho) GoSymbolTable() (*gosym.Table, error) {
-	txt, err := m.section("__text")
-	if err != nil {
-		return nil, err
-	}
-
-	sect, err := m.section("__gopclntab")
-	if err != nil {
-		return nil, err
-	}
-	pclntab, err := sect.Data()
-	if err != nil {
-		return nil, err
-	}
-
-	return gosym.NewTable(nil, gosym.NewLineTable(pclntab, txt.AddrRange.Start))
 }
 
 // Close closes the underlying file

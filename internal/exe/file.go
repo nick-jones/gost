@@ -1,7 +1,6 @@
 package exe
 
 import (
-	"debug/gosym"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -14,10 +13,10 @@ type File interface {
 	ByteOrder() binary.ByteOrder
 	TextSection() (Section, error)
 	RODataSection() (Section, error)
+	PCLNTabSection() (Section, error)
 	SectionContainingRange(address.Range) (Section, error)
 	Symbol(name string) (Symbol, error)
 	SymbolForAddress(addr uint64) (Symbol, error)
-	GoSymbolTable() (*gosym.Table, error)
 	io.Closer
 }
 
