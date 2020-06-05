@@ -3,7 +3,7 @@
 WIP experiments in extracting string constants from Go compiled binaries.
 
 At the moment it has a number of limitations:
-- It only works with x86-64 Mach-O executables (so ELF, etc, will not work)
+- It only works with x86-64 ELF and Mach-O executables
 - Since this is heuristic driven, not all cases will be captured
 - Unreferenced strings likely will not feature in compiled binaries
 - This relies on certain characteristics of how Go compiles binaries; these are liable to change between versions
