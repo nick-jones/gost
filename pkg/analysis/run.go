@@ -36,13 +36,13 @@ func Run(f exe.File) ([]Result, error) {
 	}
 
 	// search for strings referenced in instructions
-	candidates1, err := analysis.FindDirectReferences(f, sym.Range)
+	candidates1, err := analysis.EvaluateDirectReferences(f, sym.Range)
 	if err != nil {
 		return nil, fmt.Errorf("failed to analyse instructions: %w", err)
 	}
 
 	// search for strings referenced from statictmp
-	candidates2, err := analysis.FindIndirectReferences(f, sym.Range)
+	candidates2, err := analysis.EvaluateIndirectReferences(f, sym.Range)
 	if err != nil {
 		return nil, fmt.Errorf("failed to analyse statictmp: %w", err)
 	}

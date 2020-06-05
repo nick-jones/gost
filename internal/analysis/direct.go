@@ -9,8 +9,8 @@ import (
 	"github.com/nick-jones/gost/internal/pattern"
 )
 
-// FindDirectReferences scans for direct references to the supplied address range and returns candidates
-func FindDirectReferences(f exe.File, strRange address.Range) ([]Candidate, error) {
+// EvaluateDirectReferences scans for direct references to the supplied address range and returns candidates
+func EvaluateDirectReferences(f exe.File, strRange address.Range) ([]Candidate, error) {
 	// the __text section contains executable instructions
 	txt, err := f.TextSection()
 	if err != nil {
