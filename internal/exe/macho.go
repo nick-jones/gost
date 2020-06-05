@@ -79,7 +79,7 @@ func (m *Macho) SectionContainingRange(addrRange address.Range) (Section, error)
 	for _, s := range m.f.Sections {
 		if addrRange.Start >= s.Addr && addrRange.Start <= s.Addr+s.Size {
 			if addrRange.End < s.Addr && addrRange.End > s.Addr+s.Size {
-				return Section{}, fmt.Errorf("go.string.* unexpetedly overflows from section %s (%s)", s.Name, addrRange)
+				return Section{}, fmt.Errorf("range overflows from section %s (%s)", s.Name, addrRange)
 			}
 			return Section{
 				Name: s.Name,

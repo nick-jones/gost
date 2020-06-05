@@ -24,6 +24,7 @@ type File interface {
 var (
 	machoMagicLE = []byte{0xcf, 0xfa, 0xed, 0xfe}
 	machoMagicBE = []byte{0xfe, 0xed, 0xfa, 0xcf}
+	elfMagic     = []byte{0x7f, 0x45, 0x4c, 0x46}
 )
 
 // Open opens the named file
@@ -38,8 +39,11 @@ func Open(filePath string) (File, error) {
 		return nil, err
 	}
 
-	if bytes.Equal(ident, machoMagicLE) || bytes.Equal(ident, machoMagicBE) {
+	switch {
+	case bytes.Equal(ident, machoMagicLE) || bytes.Equal(ident, machoMagicBE):
 		return newMacho(f)
+	case bytes.Equal(ident, elfMagic):
+		return newELF(f)
 	}
 
 	return nil, fmt.Errorf("could not determine exe type for %s", filePath)
