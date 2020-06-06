@@ -8,12 +8,12 @@ import (
 )
 
 func TestRange_Size(t *testing.T) {
-	r := address.Range{Start: 10, End:   20}
+	r := address.Range{Start: 10, End: 20}
 	assert.Equal(t, 10, r.Size())
 }
 
 func TestRange_Equal(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		name       string
 		addrRange1 address.Range
 		addrRange2 address.Range
@@ -58,11 +58,11 @@ func TestRange_Equal(t *testing.T) {
 }
 
 func TestRange_Contains(t *testing.T) {
-	testCases := []struct{
-		name string
-		addr uint64
+	testCases := []struct {
+		name      string
+		addr      uint64
 		addrRange address.Range
-		expect bool
+		expect    bool
 	}{
 		{
 			name:      "address within range",

@@ -232,7 +232,7 @@ var directMatchers = []directMatcher{
 	},
 	{
 		// string into struct (7)
-		pattern:   []byte{
+		pattern: []byte{
 			0x48, 0x8d, 0x05, wild, wild, wild, wild, // lea rax, [rip + ????]
 			0x48, 0x89, 0x84, 0x24, wild, wild, wild, wild, // mov qword ptr [rsp + 136], rax
 			0x48, 0xc7, 0x84, 0x24, wild, wild, wild, wild, wild, wild, wild, wild, // mov  qword ptr [rsp + 144], 6
@@ -249,8 +249,8 @@ var directMatchers = []directMatcher{
 		// const into struct
 		pattern: []byte{
 			0x48, 0xc7, 0x40, wild, wild, wild, wild, wild, // mov qword ptr [rax + ?], ????
-			0x48, 0x8d, 0x0d, wild, wild, wild, wild,  //  lea rcx, [rip + ????]
-			0x48, 0x89, 0x48, wild,  // mov qword ptr [rax + ?], rcx
+			0x48, 0x8d, 0x0d, wild, wild, wild, wild, //  lea rcx, [rip + ????]
+			0x48, 0x89, 0x48, wild, // mov qword ptr [rax + ?], rcx
 		},
 		insPos:    8,
 		offsetPos: 11,

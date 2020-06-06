@@ -24,9 +24,7 @@ func Locate(f *exe.File) (address.Range, error) {
 }
 
 // guessStringTableAddressRange is an imperfect attempt at guessing the address range for the Go string table. It looks
-// for contiguous blocks of 7-bit ASCII. This is obviously defeated by UTF-8; further down it attempts to join blocks
-// that are close by. Again this can be defeated by numerous UTF-8 encoded characters in a row. Unfortunately there is
-// no simple way to guess the range.
+// for contiguous blocks of 7-bit ASCII.
 func guessStringTableAddressRange(f *exe.File) (address.Range, error) {
 	rodata, err := f.RODataSection()
 	if err != nil {
@@ -87,7 +85,7 @@ func mergeAddressRanges(addrRanges []address.Range, maxDistance int) []address.R
 			previous = addrRange
 			continue
 		}
-		if addrRange.Start - previous.End < uint64(maxDistance) {
+		if addrRange.Start-previous.End < uint64(maxDistance) {
 			previous.End = addrRange.End
 			continue
 		}

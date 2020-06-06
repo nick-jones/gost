@@ -12,7 +12,7 @@ func MatchBytes(data []byte, patterns [][]byte) []Match {
 	var results []Match
 	for i := range data {
 		for j, pattern := range patterns {
-			if i + len(pattern) > len(data) {
+			if i+len(pattern) > len(data) {
 				continue
 			}
 			var matches int
@@ -33,4 +33,3 @@ func MatchBytes(data []byte, patterns [][]byte) []Match {
 	}
 	return results
 }
-
