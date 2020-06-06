@@ -23,7 +23,7 @@ func NewContext() *Context {
 	return &Context{}
 }
 
-func (c *Context) aBinaryBuiltFromSource(src *messages.PickleStepArgument_PickleDocString) error {
+func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *messages.PickleStepArgument_PickleDocString) error {
 	goBin, err := exec.LookPath("go")
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (c *Context) aBinaryBuiltFromSource(src *messages.PickleStepArgument_Pickle
 		return err
 	}
 
-	srcFile := filepath.Join(c.tempDir, "main.go")
+	srcFile := filepath.Join(c.tempDir, fileName)
 	if err := ioutil.WriteFile(srcFile, []byte(src.Content), 0644); err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (c *Context) RegisterHooks(s *godog.Suite) {
 		c.results = nil
 	})
 
-	s.Step(`^a binary built from source:$`, c.aBinaryBuiltFromSource)
+	s.Step(`^a binary built from source file (.+):$`, c.aBinaryBuiltFromSourceFile)
 	s.Step(`^that binary is analysed$`, c.thatBinaryIsAnalysed)
 	s.Step(`^the following results are returned:$`, c.theFollowingResultsAreReturned)
 }
