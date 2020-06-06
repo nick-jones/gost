@@ -102,7 +102,7 @@ func (m *Macho) Symbol(name string) (Symbol, error) {
 		found   bool
 	)
 	for _, sym := range m.symbols {
-		if found {
+		if found && sym.Value > matched.Range.Start {
 			matched.Range.End = sym.Value - 1
 			return matched, nil
 		}
