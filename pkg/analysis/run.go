@@ -91,7 +91,7 @@ func buildResults(candidates []analysis.Candidate, f *exe.File, strRange address
 		return results[i].Addr < results[j].Addr
 	})
 
-	return results, nil
+	return enrichWithSymbols(results, f)
 }
 
 func dedupeCandidates(candidates []analysis.Candidate) []analysis.Candidate {
@@ -109,6 +109,35 @@ func dedupeCandidates(candidates []analysis.Candidate) []analysis.Candidate {
 		deduped = append(deduped, res)
 	}
 	return deduped
+}
+
+func enrichWithSymbols(results []Result, f *exe.File) ([]Result, error) {
+	// extract reference addresses
+	addrs := make([]uint64, 0)
+	for _, res := range results {
+		for _, ref := range res.Refs {
+			addrs = append(addrs, ref.Addr)
+		}
+	}
+
+	// resolve symbols for all addresses
+	syms, err := f.SymbolsForAddresses(addrs)
+	if err != nil {
+		return nil, err
+	}
+
+	// enrich references with symbols
+	for i, res := range results {
+		for j, ref := range res.Refs {
+			if sym, found := syms[ref.Addr]; found {
+				ref.Symbol = sym
+				ref.SymbolOffset = int(ref.Addr) - int(sym.AddrRange.Start)
+				res.Refs[j] = ref
+			}
+		}
+		results[i] = res
+	}
+	return results, nil
 }
 
 func createSymtab(f *exe.File) (*gosym.Table, error) {

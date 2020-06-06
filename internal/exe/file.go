@@ -6,13 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/nick-jones/gost/internal/address"
 )
 
 var (
 	// ErrSymbolNotFound is returned when a symbol is requested that cannot be located
-	ErrSymbolNotFound  = errors.New("symbol not found")
+	ErrSymbolNotFound = errors.New("symbol not found")
 	// ErrSectionNotFound is returned when a section is requested that cannot be located
 	ErrSectionNotFound = errors.New("section not found")
 
@@ -98,17 +99,29 @@ func (e *File) Symbol(name string) (Symbol, error) {
 }
 
 // SymbolForAddress locates a symbol for the supplied address
-func (e *File) SymbolForAddress(addr uint64) (Symbol, error) {
-	sects, err := e.adapt.Symbols()
+func (e *File) SymbolsForAddresses(addrs []uint64) (map[uint64]Symbol, error) {
+	sort.Slice(addrs, func(i, j int) bool {
+		return addrs[i] < addrs[j]
+	})
+
+	syms, err := e.adapt.Symbols()
 	if err != nil {
-		return Symbol{}, err
+		return nil, err
 	}
-	for _, s := range sects {
-		if s.AddrRange.Contains(addr) {
-			return s, nil
+
+	results := make(map[uint64]Symbol)
+	i := 0
+	for _, addr := range addrs {
+		for ; i < len(syms) && !syms[i].AddrRange.Contains(addr); i++ {
+			// keep moving the index forward until we find a match (or run out of symbols)
 		}
+		if i == len(syms) {
+			// reached the end of symbols
+			break
+		}
+		results[addr] = syms[i]
 	}
-	return Symbol{}, ErrSymbolNotFound
+	return results, nil
 }
 
 // TextSection returns the text section
