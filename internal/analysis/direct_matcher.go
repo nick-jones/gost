@@ -246,6 +246,38 @@ var directMatchers = []directMatcher{
 		arg2Pos:   19,
 	},
 	{
+		// string into struct (8) - direct assignment
+		pattern: []byte{
+			0x48, 0xc7, 0x41, wild, wild, wild, wild, wild, // mov qword ptr [rcx + ?], ????
+			0x83, 0x3d, wild, wild, wild, wild, wild, // cmp dword ptr [rip + ????], ?
+			0x0f, 0x85, wild, wild, wild, wild, // jne ????
+			0x48, 0x8d, 0x15, wild, wild, wild, wild, // lea rdx, [rip + ????]
+			0x48, 0x89, 0x51, wild, // mov qword ptr [rcx + ?]
+		},
+		insPos:    21,
+		offsetPos: 24,
+		offsetLen: 4,
+		lenPos:    4,
+		lenSize:   4,
+		arg1Pos:   31,
+		arg2Pos:   3,
+	},
+	{
+		// string function argument
+		pattern: []byte{
+			0x48, 0x8d, 0x0d, wild, wild, wild, wild, // lea rcx, [rip + ????]
+			0x48, 0x89, 0x4c, 0x24, wild, // mov qword ptr [rsp + ?], rcx
+			0x48, 0xc7, 0x44, 0x24, wild, wild, wild, wild, wild, // mov qword ptr [rsp + ?], ????
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    17,
+		lenSize:   4,
+		arg1Pos:   11,
+		arg2Pos:   16,
+	},
+	{
 		// const into struct
 		pattern: []byte{
 			0x48, 0xc7, 0x40, wild, wild, wild, wild, wild, // mov qword ptr [rax + ?], ????
