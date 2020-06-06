@@ -254,8 +254,9 @@ signature of `fmt.Print` may give us a clue:
 func Print(a ...interface{}) (n int, err error)
 ```
 
-So it receives empty interfaces as arguments. So perhaps this is supplying type information? Let's check the first
-reference:
+So it receives empty interfaces as arguments. Given the way interfaces work, it's entirely possible what we're seeing
+here is something that indicates type along with a pointer to the underlying value. Let's check that first reference
+and run with the theory that it is carrying some type indication:
 
 ```
  109cfc5:       48 8d 05 74 e2 00 00    lea     rax, [rip + 57972]
@@ -364,7 +365,7 @@ type _type struct {
 
 23 bytes to reach `kind`.
 
-So we have a likely way to obtain the type. So what about the second argument? Could this be the string value? Let's
+So we have a likely way to obtain the type. So what about the second reference? Could this be the string value? Let's
 check:
 
 ```
@@ -381,9 +382,9 @@ check:
 ```
 
 No `banana`! Well actually that makes sense. As discussed in Example 1, Go always wants to deal with strings by carrying
-a pointer and length. So perhaps that's what we have here? The most obvious thing to look for is the length of out
+a pointer and length. So perhaps that's what we have here? The most obvious thing to look for is the length of our
 string, which is 6. We can see that in the latter 8 bytes. This is Mach-O and little endian, so we need to do a bit of
-re-arranging to get those 8 bytes as big endian
+re-arranging to get those 8 bytes as big endian:
 
 ```
 little endian: 0600000000000000
