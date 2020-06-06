@@ -20,11 +20,11 @@ type Result struct {
 
 // References carries information relating to a reference to a string
 type Reference struct {
-	Addr   uint64     // address where the reference is made
-	Symbol exe.Symbol // closest symbol
-	Offset int        // offset from the closes symbol
-	File   string     // file that contains the reference
-	Line   int        // line number of the above file
+	Addr         uint64     // address where the reference is made
+	Symbol       exe.Symbol // closest symbol
+	SymbolOffset int        // offset from the closes symbol
+	File         string     // file that contains the reference
+	Line         int        // line number of the above file
 }
 
 // Run performs analysis over the file and returns potential strings
@@ -81,11 +81,6 @@ func buildResults(candidates []analysis.Candidate, f exe.File, strRange address.
 				Addr: addr,
 				File: file,
 				Line: line,
-			}
-			sym, err := f.SymbolForAddress(addr)
-			if err == nil {
-				ref.Symbol = sym
-				ref.Offset = int(addr) - int(sym.Range.Start)
 			}
 			res.Refs = append(res.Refs, ref)
 		}
