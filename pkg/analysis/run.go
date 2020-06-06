@@ -28,7 +28,7 @@ type Reference struct {
 }
 
 // Run performs analysis over the file and returns potential strings
-func Run(f exe.File) ([]Result, error) {
+func Run(f *exe.File) ([]Result, error) {
 	// locate address range for go.string.*
 	strRange, err := strtable.Locate(f)
 	if err != nil {
@@ -53,7 +53,7 @@ func Run(f exe.File) ([]Result, error) {
 	return buildResults(candidates, f, strRange)
 }
 
-func buildResults(candidates []analysis.Candidate, f exe.File, strRange address.Range) ([]Result, error) {
+func buildResults(candidates []analysis.Candidate, f *exe.File, strRange address.Range) ([]Result, error) {
 	// find section the go.string.* range resides in (should be __rodata)
 	sect, err := f.SectionContainingRange(strRange)
 	if err != nil {
@@ -111,7 +111,7 @@ func dedupeCandidates(candidates []analysis.Candidate) []analysis.Candidate {
 	return deduped
 }
 
-func createSymtab(f exe.File) (*gosym.Table, error) {
+func createSymtab(f *exe.File) (*gosym.Table, error) {
 	txt, err := f.TextSection()
 	if err != nil {
 		return nil, err

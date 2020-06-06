@@ -10,7 +10,7 @@ import (
 
 // Locate returns the address range for the Go string table. This uses symbol information, falling back to plain old
 // guess work if symbols are unavailable.
-func Locate(f exe.File) (address.Range, error) {
+func Locate(f *exe.File) (address.Range, error) {
 	// use the go.string.* symbol if available
 	sym, err := f.Symbol("go.string.*")
 	if err != nil {
@@ -20,14 +20,14 @@ func Locate(f exe.File) (address.Range, error) {
 		}
 		return address.Range{}, fmt.Errorf("failed to locate go.string.* range: %w", err)
 	}
-	return sym.Range, nil
+	return sym.AddrRange, nil
 }
 
 // guessStringTableAddressRange is an imperfect attempt at guessing the address range for the Go string table. It looks
 // for contiguous blocks of 7-bit ASCII. This is obviously defeated by UTF-8; further down it attempts to join blocks
 // that are close by. Again this can be defeated by numerous UTF-8 encoded characters in a row. Unfortunately there is
 // no simple way to guess the range.
-func guessStringTableAddressRange(f exe.File) (address.Range, error) {
+func guessStringTableAddressRange(f *exe.File) (address.Range, error) {
 	rodata, err := f.RODataSection()
 	if err != nil {
 		return address.Range{}, err

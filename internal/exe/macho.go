@@ -3,140 +3,127 @@ package exe
 import (
 	"debug/macho"
 	"encoding/binary"
-	"fmt"
 	"os"
 	"sort"
 
 	"github.com/nick-jones/gost/internal/address"
 )
 
-// Macho covers Mach-O type executables
-type Macho struct {
-	f       *macho.File
-	symbols []macho.Symbol
+// machoFile covers Mach-O type executables
+type machoFile struct {
+	byteOrder binary.ByteOrder
+	symbols   []Symbol
+	sections  []Section
 }
 
-// newMacho initialises the Macho type
-func newMacho(f *os.File) (*Macho, error) {
+// newMachoFile initialises the machoFile type
+func newMachoFile(f *os.File) (*machoFile, error) {
 	mf, err := macho.NewFile(f)
 	if err != nil {
 		return nil, err
 	}
 
-	// the symbols are not sorted by default. Since a number of functions benefit from them being ordered,
-	// we copy out the symbols and sort them.
-	syms := make([]macho.Symbol, len(mf.Symtab.Syms))
-	copy(syms, mf.Symtab.Syms)
-	sort.Slice(syms, func(i, j int) bool {
-		return syms[i].Value < syms[j].Value
-	})
-
-	return &Macho{
-		f:       mf,
-		symbols: syms,
+	return &machoFile{
+		byteOrder: mf.ByteOrder,
+		symbols:   mapMachoSymbols(mf),
+		sections:  mapMachoSections(mf),
 	}, nil
 }
 
 // ByteOrder returns the byte order (little or big endian)
-func (m *Macho) ByteOrder() binary.ByteOrder {
-	return m.f.ByteOrder
+func (m *machoFile) ByteOrder() binary.ByteOrder {
+	return m.byteOrder
 }
 
 // TextSection locates and returns __text
-func (m *Macho) TextSection() (Section, error) {
+func (m *machoFile) TextSection() (Section, error) {
 	return m.section("__text")
 }
 
 // TextSection locates and returns __rodata
-func (m *Macho) RODataSection() (Section, error) {
+func (m *machoFile) RODataSection() (Section, error) {
 	return m.section("__rodata")
 }
 
 // PCLNTabSection locates and returns __gopclntab
-func (m *Macho) PCLNTabSection() (Section, error) {
+func (m *machoFile) PCLNTabSection() (Section, error) {
 	return m.section("__gopclntab")
 }
 
 // section searches for a section by name
-func (m *Macho) section(name string) (Section, error) {
-	sect := m.f.Section(name)
-	if sect == nil {
-		return Section{}, fmt.Errorf("failed to locate section %s", name)
+func (m *machoFile) section(name string) (Section, error) {
+	for _, s := range m.sections {
+		if s.Name == name {
+			return s, nil
+		}
 	}
-	return Section{
-		Name: sect.Name,
-		AddrRange: address.Range{
-			Start: sect.Addr,
-			End:   sect.Addr + sect.Size,
-		},
-		ReaderAt: sect.ReaderAt,
-	}, nil
+	return Section{}, ErrSectionNotFound
 }
 
-// SectionContainingRange locates a section containing a given range. It returns an error if one cannot be found, or
-// the range spans over the boundary of a section.
-func (m *Macho) SectionContainingRange(addrRange address.Range) (Section, error) {
-	for _, s := range m.f.Sections {
-		if addrRange.Start >= s.Addr && addrRange.Start <= s.Addr+s.Size {
-			if addrRange.End < s.Addr && addrRange.End > s.Addr+s.Size {
-				return Section{}, fmt.Errorf("range overflows from section %s (%s)", s.Name, addrRange)
+// Sections returns all sections
+func (m *machoFile) Sections() ([]Section, error) {
+	return m.sections, nil
+}
+
+// Symbols returns all symbols
+func (m *machoFile) Symbols() ([]Symbol, error) {
+	return m.symbols, nil
+}
+
+// mapELFSymbols maps Mach-O symbols to our standard type
+func mapMachoSymbols(f *macho.File) []Symbol {
+	// copy symbols & sort
+	syms := make([]macho.Symbol, len(f.Symtab.Syms))
+	copy(syms, f.Symtab.Syms)
+	sort.Slice(syms, func(i, j int) bool {
+		return syms[i].Value < syms[j].Value
+	})
+
+	// Mach-O symbols do not carry size, so the following performs a best guess at address ranges. It's imperfect but
+	// good enough for what we need.
+	mapped := make([]Symbol, 0, len(syms))
+	buffered := make([]macho.Symbol, 0)
+	var anchor uint64
+	for _, s := range syms {
+		if len(buffered) > 0 && s.Value > anchor {
+			for _, b := range buffered {
+				mapped = append(mapped, Symbol{
+					Name: b.Name,
+					AddrRange: address.Range{
+						Start: b.Value,
+						End:   s.Value - 1,
+					},
+				})
 			}
-			return Section{
-				Name: s.Name,
-				AddrRange: address.Range{
-					Start: s.Addr,
-					End:   s.Addr + s.Size,
-				},
-				ReaderAt: s.ReaderAt,
-			}, nil
+			buffered = buffered[:0]
 		}
+		buffered = append(buffered, s)
+		anchor = s.Value
 	}
-	return Section{}, fmt.Errorf("failed to locate section for address range (%s)", addrRange)
+	for _, b := range buffered {
+		mapped = append(mapped, Symbol{
+			Name: b.Name,
+			AddrRange: address.Range{
+				Start: b.Value,
+				End:   b.Value, // since we don't know where to end this we'll just use the same address
+			},
+		})
+	}
+	return mapped
 }
 
-// Symbol locates a symbol by name. Because Mach-O symbols do not carry size, this returns a "best guess" at the
-// address range by returning -1 of the closest subsequent symbol. This is imperfect but good enough.
-func (m *Macho) Symbol(name string) (Symbol, error) {
-	var (
-		matched Symbol
-		found   bool
-	)
-	for _, sym := range m.symbols {
-		if found && sym.Value > matched.Range.Start {
-			matched.Range.End = sym.Value - 1
-			return matched, nil
-		}
-		if sym.Name == name {
-			matched = Symbol{
-				Name:  sym.Name,
-				Range: address.Range{Start: sym.Value},
-			}
-			found = true
+// mapMachoSections maps Mach-O sections to our standard type
+func mapMachoSections(f *macho.File) []Section {
+	sects := make([]Section, len(f.Sections))
+	for i, s := range f.Sections {
+		sects[i] = Section{
+			Name: s.Name,
+			AddrRange: address.Range{
+				Start: s.Addr,
+				End:   s.Addr + s.Size,
+			},
+			ReaderAt: s.ReaderAt,
 		}
 	}
-	return Symbol{}, fmt.Errorf("symbol %s not found", name)
-}
-
-// SymbolForAddress locates a symbol that is closest to the supplied address. As with the Symbol above, it returns a
-// best guess at the address range. If a symbol cannot be found for the address an error is returned.
-func (m *Macho) SymbolForAddress(addr uint64) (Symbol, error) {
-	var previous macho.Symbol
-	for _, sym := range m.symbols {
-		if sym.Value > addr {
-			return Symbol{
-				Name: previous.Name,
-				Range: address.Range{
-					Start: previous.Value,
-					End:   sym.Value - 1,
-				},
-			}, nil
-		}
-		previous = sym
-	}
-	return Symbol{}, fmt.Errorf("symbol for address %x not found", addr)
-}
-
-// Close closes the underlying file
-func (m *Macho) Close() error {
-	return m.f.Close()
+	return sects
 }

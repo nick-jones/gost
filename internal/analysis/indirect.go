@@ -10,7 +10,7 @@ import (
 )
 
 // EvaluateIndirectReferences scans for indirect references to the supplied address range and returns candidates
-func EvaluateIndirectReferences(f exe.File, strRange address.Range) ([]Candidate, error) {
+func EvaluateIndirectReferences(f *exe.File, strRange address.Range) ([]Candidate, error) {
 	refs, err := findInterfaceReferences(f)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ type interfaceReference struct {
 	valueHeaderAddr uint64
 }
 
-func findInterfaceReferences(f exe.File) ([]interfaceReference, error) {
+func findInterfaceReferences(f *exe.File) ([]interfaceReference, error) {
 	// the __text section contains executable instructions
 	txt, err := f.TextSection()
 	if err != nil {

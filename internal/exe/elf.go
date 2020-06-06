@@ -3,165 +3,161 @@ package exe
 import (
 	"debug/elf"
 	"encoding/binary"
-	"fmt"
+	"errors"
 	"os"
 	"sort"
 
 	"github.com/nick-jones/gost/internal/address"
 )
 
-// ELF covers Executable and Linkable Format (ELF) type binaries
-type ELF struct {
-	f       *elf.File
-	symbols []elf.Symbol
+// elfFile covers Executable and Linkable Format (elfFile) type binaries
+type elfFile struct {
+	byteOrder binary.ByteOrder
+	symbols   []Symbol
+	sections  []Section
 }
 
-// newELF initialises the ELF type
-func newELF(f *os.File) (*ELF, error) {
+// newELFFile initialises the elfFile type
+func newELFFile(f *os.File) (*elfFile, error) {
 	ef, err := elf.NewFile(f)
 	if err != nil {
 		return nil, err
 	}
 
-	// as with Mach-O, symbols are not returned in address order
-	var syms []elf.Symbol
-	orig, err := ef.Symbols()
-	if err == nil {
-		syms = make([]elf.Symbol, len(orig))
-		copy(syms, orig)
-		sort.Slice(syms, func(i, j int) bool {
-			return syms[i].Value < syms[j].Value
-		})
+	syms, err := mapELFSymbols(ef)
+	if err != nil {
+		return nil, err
 	}
 
-	return &ELF{
-		f:       ef,
-		symbols: syms,
+	sects, err := mapELFSections(ef)
+	if err != nil {
+		return nil, err
+	}
+
+	return &elfFile{
+		byteOrder: ef.ByteOrder,
+		symbols:   syms,
+		sections:  sects,
 	}, nil
 }
 
 // ByteOrder returns the byte order (little or big endian)
-func (e *ELF) ByteOrder() binary.ByteOrder {
-	return e.f.ByteOrder
+func (e *elfFile) ByteOrder() binary.ByteOrder {
+	return e.byteOrder
 }
 
 // TextSection locates and returns .text
-func (e *ELF) TextSection() (Section, error) {
+func (e *elfFile) TextSection() (Section, error) {
 	return e.section(".text")
 }
 
 // TextSection locates and returns .rodata
-func (e *ELF) RODataSection() (Section, error) {
+func (e *elfFile) RODataSection() (Section, error) {
 	return e.section(".rodata")
 }
 
 // TextSection locates and returns .gopclntab
-func (e *ELF) PCLNTabSection() (Section, error) {
+func (e *elfFile) PCLNTabSection() (Section, error) {
 	return e.section(".gopclntab")
 }
 
 // section searches for a section by name
-func (e *ELF) section(name string) (Section, error) {
-	sect := e.f.Section(name)
-	if sect == nil {
-		return Section{}, fmt.Errorf("failed to locate section %s", name)
+func (e *elfFile) section(name string) (Section, error) {
+	for _, s := range e.sections {
+		if s.Name == name {
+			return s, nil
+		}
 	}
-	return Section{
-		Name: sect.Name,
-		AddrRange: address.Range{
-			Start: sect.Addr,
-			End:   sect.Addr + sect.Size,
-		},
-		ReaderAt: sect.ReaderAt,
-	}, nil
+	return Section{}, ErrSectionNotFound
 }
 
-// SectionContainingRange locates a section containing a given range. It returns an error if one cannot be found, or
-// the range spans over the boundary of a section.
-func (e *ELF) SectionContainingRange(addrRange address.Range) (Section, error) {
-	for _, s := range e.f.Sections {
-		if addrRange.Start >= s.Addr && addrRange.Start <= s.Addr+s.Size {
-			if addrRange.End < s.Addr && addrRange.End > s.Addr+s.Size {
-				return Section{}, fmt.Errorf("range overflows from section %s (%s)", s.Name, addrRange)
+// Sections returns all known sections
+func (e *elfFile) Sections() ([]Section, error) {
+	return e.sections, nil
+}
+
+// Symbols returns all known symbols
+func (e *elfFile) Symbols() ([]Symbol, error) {
+	return e.symbols, nil
+}
+
+// mapELFSymbols maps ELF symbols to our standard type
+func mapELFSymbols(f *elf.File) ([]Symbol, error) {
+	// read symbols
+	orig, err := f.Symbols()
+	if err != nil {
+		if errors.Is(err, elf.ErrNoSymbols) {
+			// symbols are not guaranteed to be included, so this error can be ignored
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// copy symbols & sort
+	syms := make([]elf.Symbol, len(orig))
+	copy(syms, orig)
+	sort.Slice(syms, func(i, j int) bool {
+		return syms[i].Value < syms[j].Value
+	})
+
+	// Map symbols to our standard Symbol type. ELF symbols can carry size, with Go compiled binaries some important
+	// symbols don't have size set. So we use similar tricks to Mach-O where the size is zero: guess the size based on
+	// the next symbol. This may not be perfect but it works well enough for what we need.
+	mapped := make([]Symbol, 0, len(syms))
+	buffered := make([]elf.Symbol, 0)
+	var anchor uint64
+	for _, s := range syms {
+		if len(buffered) > 0 && s.Value > anchor {
+			for _, b := range buffered {
+				mapped = append(mapped, Symbol{
+					Name: b.Name,
+					AddrRange: address.Range{
+						Start: b.Value,
+						End:   s.Value - 1,
+					},
+				})
 			}
-			return Section{
+			buffered = buffered[:0]
+		}
+		if s.Size > 0 {
+			// if we have size we can map the symbol straight away
+			mapped = append(mapped, Symbol{
 				Name: s.Name,
 				AddrRange: address.Range{
-					Start: s.Addr,
-					End:   s.Addr + s.Size,
+					Start: s.Value,
+					End:   s.Value + s.Size,
 				},
-				ReaderAt: s.ReaderAt,
-			}, nil
+			})
+		} else {
+			// if we have no size we'll buffer it until we have a symbol with a greater address
+			buffered = append(buffered, s)
+			anchor = s.Value
 		}
 	}
-	return Section{}, fmt.Errorf("failed to locate section for address range (%s)", addrRange)
+	for _, b := range buffered {
+		mapped = append(mapped, Symbol{
+			Name: b.Name,
+			AddrRange: address.Range{
+				Start: b.Value,
+				End:   b.Value, // since we don't know where to end this we'll just use the same address
+			},
+		})
+	}
+	return mapped, nil
 }
 
-// Symbol locates a symbol by name. For Go binaries, not all symbols are returned with associated size. If size is
-// returned, we use it. Otherwise we apply similar guess work seen with Mach-O.
-func (e *ELF) Symbol(name string) (Symbol, error) {
-	var (
-		matched Symbol
-		found   bool
-	)
-	for _, sym := range e.symbols {
-		if found && sym.Value > matched.Range.Start {
-			matched.Range.End = sym.Value - 1
-			return matched, nil
-		}
-		if sym.Name == name {
-			// If the symbol carries size, return straight away
-			if sym.Size > 0 {
-				return Symbol{
-					Name: sym.Name,
-					Range: address.Range{
-						Start: sym.Value,
-						End:   sym.Size,
-					},
-				}, nil
-			}
-			// Unfortunately not all symbols have size (including go.string.*) - so we have to use the same trickery
-			// that we use for Mach-O, base the end address on the next symbol.
-			matched = Symbol{
-				Name:  sym.Name,
-				Range: address.Range{Start: sym.Value},
-			}
-			found = true
+// mapELFSections maps ELF sections to our standard type
+func mapELFSections(f *elf.File) ([]Section, error) {
+	sects := make([]Section, len(f.Sections))
+	for i, s := range f.Sections {
+		sects[i] = Section{
+			Name: s.Name,
+			AddrRange: address.Range{
+				Start: s.Addr,
+				End:   s.Addr + s.Size,
+			},
+			ReaderAt: s.ReaderAt,
 		}
 	}
-	return Symbol{}, ErrSymbolNotFound
-}
-
-// SymbolForAddress locates a symbol that is closest to the supplied address.
-func (e *ELF) SymbolForAddress(addr uint64) (Symbol, error) {
-	var previous elf.Symbol
-	for _, sym := range e.symbols {
-		// If the symbol size is > 0 and this condition holds true, we're good
-		if sym.Value < addr && sym.Value + sym.Size > addr {
-			return Symbol{
-				Name:  sym.Name,
-				Range: address.Range{
-					Start: sym.Value,
-					End:   sym.Value + sym.Size,
-				},
-			}, nil
-		}
-		// Otherwise the previous was likely 0 size
-		if sym.Value > addr {
-			return Symbol{
-				Name: previous.Name,
-				Range: address.Range{
-					Start: previous.Value,
-					End:   sym.Value - 1,
-				},
-			}, nil
-		}
-		previous = sym
-	}
-	return Symbol{}, ErrSymbolNotFound
-}
-
-// Close closes the underlying file
-func (e *ELF) Close() error {
-	return e.f.Close()
+	return sects, nil
 }
