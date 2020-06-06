@@ -3,12 +3,15 @@ package exe
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/nick-jones/gost/internal/address"
 )
+
+var ErrSymbolNotFound = errors.New("symbol not found")
 
 type File interface {
 	ByteOrder() binary.ByteOrder

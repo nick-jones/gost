@@ -24,15 +24,15 @@ func newELF(f *os.File) (*ELF, error) {
 	}
 
 	// as with Mach-O, symbols are not returned in address order
+	var syms []elf.Symbol
 	orig, err := ef.Symbols()
-	if err != nil {
-		return nil, err
+	if err == nil {
+		syms = make([]elf.Symbol, len(orig))
+		copy(syms, orig)
+		sort.Slice(syms, func(i, j int) bool {
+			return syms[i].Value < syms[j].Value
+		})
 	}
-	syms := make([]elf.Symbol, len(orig))
-	copy(syms, orig)
-	sort.Slice(syms, func(i, j int) bool {
-		return syms[i].Value < syms[j].Value
-	})
 
 	return &ELF{
 		f:       ef,
@@ -129,7 +129,7 @@ func (e *ELF) Symbol(name string) (Symbol, error) {
 			found = true
 		}
 	}
-	return Symbol{}, fmt.Errorf("symbol %s not found", name)
+	return Symbol{}, ErrSymbolNotFound
 }
 
 // SymbolForAddress locates a symbol that is closest to the supplied address.
@@ -158,7 +158,7 @@ func (e *ELF) SymbolForAddress(addr uint64) (Symbol, error) {
 		}
 		previous = sym
 	}
-	return Symbol{}, fmt.Errorf("symbol for address %x not found", addr)
+	return Symbol{}, ErrSymbolNotFound
 }
 
 // Close closes the underlying file

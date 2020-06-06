@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/nick-jones/gost/internal/address"
 	"github.com/nick-jones/gost/internal/analysis"
 	"github.com/nick-jones/gost/internal/exe"
+	"github.com/nick-jones/gost/internal/strtable"
 )
 
 // Result encapsulates a single located string
@@ -25,24 +27,22 @@ type Reference struct {
 	Line   int        // line number of the above file
 }
 
-const symStringTable = "go.string.*"
-
 // Run performs analysis over the file and returns potential strings
 func Run(f exe.File) ([]Result, error) {
 	// locate address range for go.string.*
-	sym, err := f.Symbol(symStringTable)
+	strRange, err := strtable.Locate(f)
 	if err != nil {
-		return nil, fmt.Errorf("failed to locate %s range, symbols missing? %w", symStringTable, err)
+		return nil, fmt.Errorf("failed to locate string table: %w", err)
 	}
 
 	// search for strings referenced in instructions
-	candidates1, err := analysis.EvaluateDirectReferences(f, sym.Range)
+	candidates1, err := analysis.EvaluateDirectReferences(f, strRange)
 	if err != nil {
 		return nil, fmt.Errorf("failed to analyse instructions: %w", err)
 	}
 
 	// search for strings referenced from statictmp
-	candidates2, err := analysis.EvaluateIndirectReferences(f, sym.Range)
+	candidates2, err := analysis.EvaluateIndirectReferences(f, strRange)
 	if err != nil {
 		return nil, fmt.Errorf("failed to analyse statictmp: %w", err)
 	}
@@ -50,12 +50,12 @@ func Run(f exe.File) ([]Result, error) {
 	// merge candidates
 	candidates := dedupeCandidates(append(candidates1, candidates2...))
 
-	return buildResults(candidates, f, sym)
+	return buildResults(candidates, f, strRange)
 }
 
-func buildResults(candidates []analysis.Candidate, f exe.File, stringTable exe.Symbol) ([]Result, error) {
+func buildResults(candidates []analysis.Candidate, f exe.File, strRange address.Range) ([]Result, error) {
 	// find section the go.string.* range resides in (should be __rodata)
-	sect, err := f.SectionContainingRange(stringTable.Range)
+	sect, err := f.SectionContainingRange(strRange)
 	if err != nil {
 		return nil, fmt.Errorf("failed to locate section for range: %w", err)
 	}
@@ -76,18 +76,18 @@ func buildResults(candidates []analysis.Candidate, f exe.File, stringTable exe.S
 			Value: string(buf),
 		}
 		for _, addr := range candidate.RefAddrs {
-			sym, err := f.SymbolForAddress(addr)
-			if err != nil {
-				return nil, err
-			}
 			file, line, _ := symtab.PCToLine(addr)
-			res.Refs = append(res.Refs, Reference{
-				Addr:   addr,
-				Symbol: sym,
-				Offset: int(addr) - int(sym.Range.Start),
-				File:   file,
-				Line:   line,
-			})
+			ref := Reference{
+				Addr: addr,
+				File: file,
+				Line: line,
+			}
+			sym, err := f.SymbolForAddress(addr)
+			if err == nil {
+				ref.Symbol = sym
+				ref.Offset = int(addr) - int(sym.Range.Start)
+			}
+			res.Refs = append(res.Refs, ref)
 		}
 		results[i] = res
 	}
