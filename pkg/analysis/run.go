@@ -21,11 +21,11 @@ type Result struct {
 
 // References carries information relating to a reference to a string
 type Reference struct {
-	Addr         uint64     // address where the reference is made
-	Symbol       exe.Symbol // closest symbol
-	SymbolOffset int        // offset from the closes symbol
-	File         string     // file that contains the reference
-	Line         int        // line number of the above file
+	Addr         uint64 // address where the reference is made
+	SymbolName   string // closest symbol
+	SymbolOffset int    // offset from the closes symbol
+	File         string // file that contains the reference
+	Line         int    // line number of the above file
 }
 
 // Run performs analysis over data read from the supplied reader and returns potential strings
@@ -136,7 +136,7 @@ func enrichWithSymbols(results []Result, f *exe.File) ([]Result, error) {
 	for i, res := range results {
 		for j, ref := range res.Refs {
 			if sym, found := syms[ref.Addr]; found {
-				ref.Symbol = sym
+				ref.SymbolName = sym.Name
 				ref.SymbolOffset = int(ref.Addr) - int(sym.AddrRange.Start)
 				res.Refs[j] = ref
 			}

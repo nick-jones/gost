@@ -97,7 +97,7 @@ func (c *Context) theFollowingResultsAreReturned(table *messages.PickleStepArgum
 		s := summary{val: res.Value}
 		for _, ref := range res.Refs {
 			s.fileRefs = append(s.fileRefs, fmt.Sprintf("%s:%d", filepath.Base(ref.File), ref.Line))
-			s.symRefs = append(s.symRefs, ref.Symbol.Name)
+			s.symRefs = append(s.symRefs, ref.SymbolName)
 		}
 		actual[res.Value] = s
 	}
