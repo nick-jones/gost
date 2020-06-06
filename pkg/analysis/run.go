@@ -3,6 +3,7 @@ package analysis
 import (
 	"debug/gosym"
 	"fmt"
+	"io"
 	"sort"
 
 	"github.com/nick-jones/gost/internal/address"
@@ -27,8 +28,13 @@ type Reference struct {
 	Line         int        // line number of the above file
 }
 
-// Run performs analysis over the file and returns potential strings
-func Run(f *exe.File) ([]Result, error) {
+// Run performs analysis over data read from the supplied reader and returns potential strings
+func Run(r io.ReaderAt) ([]Result, error) {
+	f, err := exe.New(r)
+	if err != nil {
+		return nil, fmt.Errorf("invalid file: %w", err)
+	}
+
 	// locate address range for go.string.*
 	strRange, err := strtable.Locate(f)
 	if err != nil {

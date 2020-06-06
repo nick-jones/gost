@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"os"
+	"io"
 	"sort"
 
 	"github.com/nick-jones/gost/internal/address"
@@ -25,7 +25,6 @@ var (
 // File represents an executable file
 type File struct {
 	adapt adapter
-	f     *os.File
 }
 
 type adapter interface {
@@ -37,26 +36,24 @@ type adapter interface {
 	Symbols() ([]Symbol, error)
 }
 
-// Open opens the named executable file
-func Open(filePath string) (*File, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("unable to open file: %w", err)
-	}
-
+// New creates a new File instance
+func New(r io.ReaderAt) (*File, error) {
 	ident := make([]byte, 4)
-	if _, err := f.ReadAt(ident, 0); err != nil {
+	if _, err := r.ReadAt(ident, 0); err != nil {
 		return nil, err
 	}
 
-	var adapt adapter
+	var (
+		adapt adapter
+		err error
+	)
 	switch {
 	case bytes.Equal(ident, machoMagicLE) || bytes.Equal(ident, machoMagicBE):
-		adapt, err = newMachoFile(f)
+		adapt, err = newMachoFile(r)
 	case bytes.Equal(ident, elfMagic):
-		adapt, err = newELFFile(f)
+		adapt, err = newELFFile(r)
 	default:
-		err = fmt.Errorf("could not determine exe type for %s", filePath)
+		err = errors.New("could not determine exe type")
 	}
 	if err != nil {
 		return nil, err
@@ -138,9 +135,4 @@ func (e *File) RODataSection() (Section, error) {
 // PCLNTabSection returns the Go PCLN table section
 func (e *File) PCLNTabSection() (Section, error) {
 	return e.adapt.PCLNTabSection()
-}
-
-// Close closes the underlying file
-func (e *File) Close() error {
-	return e.f.Close()
 }

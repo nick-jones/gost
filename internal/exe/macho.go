@@ -3,7 +3,7 @@ package exe
 import (
 	"debug/macho"
 	"encoding/binary"
-	"os"
+	"io"
 	"sort"
 
 	"github.com/nick-jones/gost/internal/address"
@@ -17,8 +17,8 @@ type machoFile struct {
 }
 
 // newMachoFile initialises the machoFile type
-func newMachoFile(f *os.File) (*machoFile, error) {
-	mf, err := macho.NewFile(f)
+func newMachoFile(r io.ReaderAt) (*machoFile, error) {
+	mf, err := macho.NewFile(r)
 	if err != nil {
 		return nil, err
 	}

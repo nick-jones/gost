@@ -11,7 +11,6 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
 
-	"github.com/nick-jones/gost/internal/exe"
 	"github.com/nick-jones/gost/pkg/analysis"
 )
 
@@ -55,7 +54,7 @@ func (c *Context) aBinaryBuiltFromSource(src *messages.PickleStepArgument_Pickle
 }
 
 func (c *Context) thatBinaryIsAnalysed() error {
-	f, err := exe.Open(filepath.Join(c.tempDir, "bin"))
+	f, err := os.Open(filepath.Join(c.tempDir, "bin"))
 	if err != nil {
 		return err
 	}

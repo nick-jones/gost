@@ -4,7 +4,7 @@ import (
 	"debug/elf"
 	"encoding/binary"
 	"errors"
-	"os"
+	"io"
 	"sort"
 
 	"github.com/nick-jones/gost/internal/address"
@@ -18,8 +18,8 @@ type elfFile struct {
 }
 
 // newELFFile initialises the elfFile type
-func newELFFile(f *os.File) (*elfFile, error) {
-	ef, err := elf.NewFile(f)
+func newELFFile(r io.ReaderAt) (*elfFile, error) {
+	ef, err := elf.NewFile(r)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,6 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/nick-jones/gost/internal/exe"
 	"github.com/nick-jones/gost/pkg/analysis"
 )
 
@@ -45,7 +44,7 @@ func run(c *cli.Context) error {
 		return fmt.Errorf("failed to parse format flag: %w", err)
 	}
 
-	f, err := exe.Open(filePath)
+	f, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
