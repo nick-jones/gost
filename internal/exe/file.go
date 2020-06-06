@@ -98,7 +98,8 @@ func (e *File) Symbol(name string) (Symbol, error) {
 	return Symbol{}, ErrSymbolNotFound
 }
 
-// SymbolForAddress locates a symbol for the supplied address
+// SymbolsForAddresses locates at most one symbol for each address. Not every address may resolve to a symbol; in such
+// cases the address will not feature in the returned map.
 func (e *File) SymbolsForAddresses(addrs []uint64) (map[uint64]Symbol, error) {
 	sort.Slice(addrs, func(i, j int) bool {
 		return addrs[i] < addrs[j]
