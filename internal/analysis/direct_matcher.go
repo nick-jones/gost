@@ -57,6 +57,21 @@ var directMatchers = []directMatcher{
 		arg2Pos:   15,
 	},
 	{
+		// first argument to a function (3)
+		pattern: []byte{
+			0x48, 0x8d, 0x0d, wild, wild, wild, wild, // lea rcx, [rip + 212126]
+			0x48, 0x89, 0x0c, 0x24, // mov qword ptr [rsp], rcx
+			0x48, 0xc7, 0x44, 0x24, 0x08, wild, wild, wild, wild, // mov qword ptr [rsp + 8], 13
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    16,
+		lenSize:   4,
+		arg1Pos:   -1,
+		arg2Pos:   15,
+	},
+	{
 		// any other argument to a function
 		pattern: []byte{
 			0x48, 0x8d, 0x05, wild, wild, wild, wild, // lea rax, [rip + ????]
