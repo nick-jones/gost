@@ -402,3 +402,129 @@ Feature: String Extraction
     Then the following results are returned:
       | String | File References | Symbol References |
       | banana | main.go:15      | main.createFoo    |
+
+  @wip
+  Scenario: String comparison
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+    )
+
+    func main() {
+      fmt.Println(isBanana(os.Args[1]))
+    }
+
+    func isBanana(str string) bool {
+      return str == "banana"
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:10      | main.isBanana     |
+
+  Scenario: String concatenation
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+    )
+
+    func main() {
+      fmt.Println(os.Args[1] + "banana")
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:9       | main.main         |
+
+  Scenario: Multiple references
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+    )
+
+    func main() {
+      fmt.Println("banana")
+
+      if len(os.Args[1]) > 0 {
+        foo()
+      }
+    }
+
+    func foo() {
+      fmt.Println("banana")
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References      | Symbol References  |
+      | banana | main.go:9 main.go:17 | main.main main.foo |
+
+  Scenario: Multiple references (const)
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+    )
+
+    const bn = "banana"
+
+    func main() {
+      fmt.Println(bn)
+
+      if len(os.Args[1]) > 0 {
+        foo()
+      }
+    }
+
+    func foo() {
+      fmt.Println(bn)
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References       | Symbol References  |
+      | banana | main.go:11 main.go:19 | main.main main.foo |
+
+  @wip
+  Scenario: String comparison
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+    )
+
+    func main() {
+      fmt.Println(isBanana(os.Args[1]))
+    }
+
+    func isBanana(str string) bool {
+      if str == "banana" {
+        return true
+      }
+      return false
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:13      | main.isFruit      |
