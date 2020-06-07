@@ -529,6 +529,59 @@ Feature: String Extraction
       | String | File References | Symbol References |
       | banana | main.go:13      | main.isFruit      |
 
+  Scenario: Suffix check
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+      "strings"
+    )
+
+    func main() {
+      fmt.Println(isBanana(os.Args[1]))
+    }
+
+    func isBanana(str string) bool {
+      return strings.HasSuffix(str, "banana")
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:14      | main.isBanana     |
+
+  @wip
+  Scenario: Suffix check (2)
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+      "strings"
+    )
+
+    func main() {
+      fmt.Println(isBanana(os.Args[1]))
+    }
+
+    func isBanana(str string) (bool, error) {
+      if strings.HasSuffix(str, "banana") {
+        return true, nil
+      }
+      return false, fmt.Errorf("no banana: %s", str)
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String        | File References | Symbol References |
+      | banana        | main.go:14      | main.isBanana     |
+      | no banana: %s | main.go:17      | main.isBanana     |
+
   Scenario: Mixed
     Given a binary built from source file main.go:
     """
@@ -582,3 +635,4 @@ Feature: String Extraction
       | banana scheme to use | main.go:23      | main.run          |
       | ignore-apple         | main.go:24      | main.run          |
       | ignore all apples    | main.go:24      | main.run          |
+      | invalid Foo          | main.go:37      | main.validate     |
