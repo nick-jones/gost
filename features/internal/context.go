@@ -43,10 +43,10 @@ func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *messages.Pick
 	cmd := exec.Command(goBin, "build", "-gcflags", "-l", "-o", filepath.Join(c.tempDir, "bin"), srcFile)
 	cmd.Env = os.Environ()
 
-	if goOS := os.Getenv("GOST_GOOS"); goOS != "" {
+	if goOS := os.Getenv("GODOG_GOOS"); goOS != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GOOS=%s", goOS))
 	}
-	if goArch := os.Getenv("GOST_GOARCH"); goArch != "" {
+	if goArch := os.Getenv("GODOG_GOARCH"); goArch != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GOARCH=%s", goArch))
 	}
 
