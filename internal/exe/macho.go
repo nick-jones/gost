@@ -70,7 +70,7 @@ func (m *machoFile) Symbols() ([]Symbol, error) {
 	return m.symbols, nil
 }
 
-// mapELFSymbols maps Mach-O symbols to our standard type
+// mapMachoSymbols maps Mach-O symbols to our standard type
 func mapMachoSymbols(f *macho.File) []Symbol {
 	if f.Symtab == nil {
 		return nil
