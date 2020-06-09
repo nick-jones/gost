@@ -5,7 +5,7 @@ type Match struct {
 	Pattern int // the pattern that matched (carries the slice index)
 }
 
-const Wildcard = 0xFF
+const Wildcard byte = 0xFF
 
 // MatchBytes matches byte patterns. This isn't designed to be efficient; it does the job well enough, though.
 func MatchBytes(data []byte, patterns [][]byte) []Match {
