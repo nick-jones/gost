@@ -72,6 +72,10 @@ func (m *machoFile) Symbols() ([]Symbol, error) {
 
 // mapELFSymbols maps Mach-O symbols to our standard type
 func mapMachoSymbols(f *macho.File) []Symbol {
+	if f.Symtab == nil {
+		return nil
+	}
+
 	// copy symbols & sort
 	syms := make([]macho.Symbol, len(f.Symtab.Syms))
 	copy(syms, f.Symtab.Syms)
