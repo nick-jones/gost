@@ -51,6 +51,7 @@ func TestRange_Equal(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(tt *testing.T) {
 			assert.Equal(tt, tc.expect, tc.addrRange1.Equal(tc.addrRange2))
 		})
@@ -96,6 +97,7 @@ func TestRange_Contains(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(tt *testing.T) {
 			assert.Equal(tt, tc.expect, tc.addrRange.Contains(tc.addr))
 		})

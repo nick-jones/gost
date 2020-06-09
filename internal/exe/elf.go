@@ -29,15 +29,10 @@ func newELFFile(r io.ReaderAt) (*elfFile, error) {
 		return nil, err
 	}
 
-	sects, err := mapELFSections(ef)
-	if err != nil {
-		return nil, err
-	}
-
 	return &elfFile{
 		byteOrder: ef.ByteOrder,
 		symbols:   syms,
-		sections:  sects,
+		sections:  mapELFSections(ef),
 	}, nil
 }
 
@@ -147,7 +142,7 @@ func mapELFSymbols(f *elf.File) ([]Symbol, error) {
 }
 
 // mapELFSections maps ELF sections to our standard type
-func mapELFSections(f *elf.File) ([]Section, error) {
+func mapELFSections(f *elf.File) []Section {
 	sects := make([]Section, len(f.Sections))
 	for i, s := range f.Sections {
 		sects[i] = Section{
@@ -159,5 +154,5 @@ func mapELFSections(f *elf.File) ([]Section, error) {
 			ReaderAt: s.ReaderAt,
 		}
 	}
-	return sects, nil
+	return sects
 }

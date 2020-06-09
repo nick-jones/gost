@@ -45,7 +45,7 @@ func New(r io.ReaderAt) (*File, error) {
 
 	var (
 		adapt adapter
-		err error
+		err   error
 	)
 	switch {
 	case bytes.Equal(ident, machoMagicLE) || bytes.Equal(ident, machoMagicBE):

@@ -35,7 +35,7 @@ func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *messages.Pick
 	}
 
 	srcFile := filepath.Join(c.tempDir, fileName)
-	if err := ioutil.WriteFile(srcFile, []byte(src.Content), 0644); err != nil {
+	if err := ioutil.WriteFile(srcFile, []byte(src.Content), 0600); err != nil {
 		return err
 	}
 
