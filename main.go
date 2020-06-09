@@ -8,7 +8,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/nick-jones/gost/pkg/analysis"
+	"github.com/nick-jones/gost/pkg/scan"
 )
 
 const tmpl = `{{printf "%x: %q" .Addr .Value}} → {{range $i, $e := .Refs}}
@@ -51,7 +51,7 @@ func run(c *cli.Context) error {
 	defer f.Close()
 
 	// run analysis
-	results, err := analysis.Run(f)
+	results, err := scan.Run(f)
 	if err != nil {
 		return fmt.Errorf("failed to search instructions: %w", err)
 	}

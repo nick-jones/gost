@@ -11,12 +11,12 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
 
-	"github.com/nick-jones/gost/pkg/analysis"
+	"github.com/nick-jones/gost/pkg/scan"
 )
 
 type Context struct {
 	tempDir string
-	results []analysis.Result
+	results []scan.Result
 }
 
 func NewContext() *Context {
@@ -60,7 +60,7 @@ func (c *Context) thatBinaryIsAnalysed() error {
 	}
 	defer f.Close()
 
-	c.results, err = analysis.Run(f)
+	c.results, err = scan.Run(f)
 	if err != nil {
 		return err
 	}

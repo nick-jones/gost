@@ -1,4 +1,4 @@
-package analysis
+package scan
 
 import (
 	"debug/gosym"
