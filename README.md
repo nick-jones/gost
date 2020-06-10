@@ -43,3 +43,7 @@ $ ./gost gost | rg 'main\.go'
 1246495: "template string for printing the results (format is text/template)" → /Users/nicholas/Dev/gost/main.go:27 
 1246a1c: "{{printf \"%x: %q\" .Addr .Value}} → {{range $i, $e := .Refs}}\n{{- if le $i 5}}{{ printf \"%s:%d \" .File .Line }}{{end}}\n{{- end}}\n{{- if gt (len .Refs) 5}}... (truncated, {{len .Refs}} total){{- end -}}\n" → /Users/nicholas/Dev/gost/main.go:28 
 ```
+
+## Fuzzing
+
+Fuzzing of this tool is catered for in a separate repository - [gost-fuzz](https://github.com/nick-jones/gost-fuzz)
