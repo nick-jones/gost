@@ -636,3 +636,66 @@ Feature: String Extraction
       | ignore-apple         | main.go:24      | main.run          |
       | ignore all apples    | main.go:24      | main.run          |
       | invalid Foo          | main.go:37      | main.validate     |
+
+  Scenario: Panic
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    func main() {
+      panic("banana")
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:4       | main.main         |
+
+  Scenario: Panic append
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import "os"
+
+    func main() {
+      panic("banana" + os.Args[1])
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:6       | main.main         |
+
+  Scenario: Panic append (2)
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import "os"
+
+    func main() {
+      panic("banana" + os.Args[1] + "apple")
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:6       | main.main         |
+      | apple  | main.go:6       | main.main         |
+
+  Scenario: Panic append (3)
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import "os"
+
+    func main() {
+      panic(os.Args[1] + "banana")
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:6       | main.main         |
