@@ -108,10 +108,10 @@ func (c *Context) theFollowingResultsAreReturned(table *messages.PickleStepArgum
 			return fmt.Errorf("failed to find string with value %s", exp.val)
 		}
 		if !equalStringSlice(exp.fileRefs, act.fileRefs) {
-			return fmt.Errorf("differing file references, expected %v, actual %v", exp.fileRefs, act.fileRefs)
+			return fmt.Errorf("differing file references for %q, expected %v, actual %v", exp.val, exp.fileRefs, act.fileRefs)
 		}
 		if !equalStringSlice(exp.symRefs, act.symRefs) {
-			return fmt.Errorf("differing symbol references, expected %v, actual %v", exp.symRefs, act.symRefs)
+			return fmt.Errorf("differing symbol references for %q, expected %v, actual %v", exp.val, exp.symRefs, act.symRefs)
 		}
 	}
 	return nil
