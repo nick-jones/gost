@@ -1,6 +1,6 @@
-# Go Static Strings
+# Go Strings
 
-Static strings manifest themselves in Go compiled binaries in a number of different ways. Below are 2 deep dives into
+Strings manifest themselves in Go compiled binaries in a number of different ways. Below are 2 deep dives into
 different examples. There are of course many other examples that could be worked through.
 
 ## Example 1
