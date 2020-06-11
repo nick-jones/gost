@@ -64,6 +64,29 @@ Feature: String Extraction
       | String | File References | Symbol References |
       | banana | main.go:8       | main.main         |
 
+  @wip
+  Scenario: 2 arguments to fmt.Println()
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import "fmt"
+
+    const (
+      x = "banana"
+      y = "apple"
+    )
+
+    func main() {
+      fmt.Println(x, y)
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:11      | main.main         |
+      | apple  | main.go:11      | main.main         |
+
   Scenario: Local function call (latter reference to `banana` currently not found)
     Given a binary built from source file main.go:
     """
@@ -699,3 +722,91 @@ Feature: String Extraction
     Then the following results are returned:
       | String | File References | Symbol References |
       | banana | main.go:6       | main.main         |
+
+  Scenario: Variable assignment
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "fmt"
+      "strings"
+    )
+
+    func main() {
+      x := "banana"
+      y := strings.Repeat(x, 3)
+      fmt.Println(x)
+      fmt.Println(y)
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References       | Symbol References   |
+      | banana | main.go:10 main.go:11 | main.main main.main |
+
+  Scenario: Variable assignment (2)
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "fmt"
+      "strings"
+    )
+
+    func main() {
+      x := "banana"
+      y := strings.Repeat(x, 3)
+      fmt.Println(y)
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:10      | main.main         |
+
+  Scenario: Variable assignment (3)
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "fmt"
+      "strings"
+    )
+
+    func main() {
+      x := "banana"
+      x = strings.Repeat(x, 3)
+      fmt.Println(x)
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:10      | main.main         |
+
+  Scenario: Variable assignment (4) - PCLN gets this wrong
+    Given a binary built from source file main.go:
+    """
+    package main
+
+    import (
+      "os"
+      "fmt"
+    )
+
+    func main() {
+      x := "banana"
+      if len(os.Args[1]) > 0 {
+        x += "apple"
+      }
+      fmt.Println(x)
+    }
+    """
+    When that binary is analysed
+    Then the following results are returned:
+      | String | File References | Symbol References |
+      | banana | main.go:11      | main.main         |
+      | apple  | main.go:11      | main.main         |
