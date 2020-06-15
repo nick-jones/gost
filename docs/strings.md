@@ -60,19 +60,21 @@ Taking these line by line:
 _relative to the current instruction_ (or more accurately the next instruction, discussed further down). The result of
 that calculation is placed into the `rax` register.
 - `mov qword ptr [rsp], rax` - moves the value held into the `rax` register into the memory location pointed to by
-the `rsp` register (stack pointer). This is the first argument for `runtime.printstring`.
-- `mov qword ptr [rsp + 8], 6` - move `6` into the memory location pointed to by the stack pointer + 8. This is the
-second argument to `runtime.printstring` and carries the length of the string.
+the `rsp` register (stack pointer).
+- `mov qword ptr [rsp + 8], 6` - move `6` into the memory location pointed to by the stack pointer + 8. This carries the
+length of the string.
 - `call runtime.printstring` - calls the print string procedure
 
 What do we need to understand from all of this?
 
 1. The calling convention used by Go requires that arguments are passed on the stack. This is unlike System V x86-64
 which uses a specific set of registers for arguments, only leveraging the stack once those are exhausted. It is not
-covered in  these 4 lines, but Go also returns values on the stack (again different to System V x86-64).
+covered in these 4 lines, but Go also returns values on the stack (again different to System V x86-64).
 1. The string value we're interested in loaded into memory. The offset is known at compile time, so that would suggest
 the value is contained in the `__DATA` segment (most likely in the `__rodata` section - we'll check this in a moment).
 1. Go passes the string length to the function - so it is more than likely that Go strings are _not_ NULL terminated.
+1. The pointer and length are passed together in adjacent stack memory. So these are either 2 arguments or 1 argument
+where the type is a struct containing both values.
 
 As you can see, we have enough information in the above to work out where the string is stored in memory, and the
 length of the string.
