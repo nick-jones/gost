@@ -10,12 +10,11 @@ import (
 
 // Locate returns the address range for the Go string table. This uses symbol information, falling back to plain old
 // guess work if symbols are unavailable.
-func Locate(f *exe.File) (address.Range, error) {
+func Locate(f *exe.File, guess bool) (address.Range, error) {
 	// use the go.string.* symbol if available
 	sym, err := f.Symbol("go.string.*")
 	if err != nil {
-		if errors.Is(err, exe.ErrSymbolNotFound) {
-			// otherwise guess the address range
+		if errors.Is(err, exe.ErrSymbolNotFound) && guess {
 			return guessStringTableAddressRange(f)
 		}
 		return address.Range{}, fmt.Errorf("failed to locate go.string.* range: %w", err)

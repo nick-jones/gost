@@ -22,6 +22,10 @@ func main() {
 		Name: "gost",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
+				Name:  "string-table",
+				Usage: `if symbols are missing, use values "guess" or "ignore" to enable more fuzzy matching`,
+			},
+			&cli.StringFlag{
 				Name:  "template",
 				Usage: "template string for printing the results (format is text/template)",
 				Value: tmpl,
@@ -50,8 +54,13 @@ func run(c *cli.Context) error {
 	}
 	defer f.Close()
 
+	opts, err := parseFlags(c)
+	if err != nil {
+		return fmt.Errorf("failed to parse flags: %w", err)
+	}
+
 	// run analysis
-	results, err := scan.Run(f)
+	results, err := scan.Run(f, opts...)
 	if err != nil {
 		return fmt.Errorf("failed to search instructions: %w", err)
 	}
@@ -65,4 +74,18 @@ func run(c *cli.Context) error {
 	}
 
 	return nil
+}
+
+func parseFlags(c *cli.Context) ([]scan.Option, error) {
+	opts := make([]scan.Option, 0)
+	switch flag := c.String("string-table"); flag {
+	case "guess":
+		opts = append(opts, scan.WithStringTableGuessed())
+	case "ignore":
+		opts = append(opts, scan.WithStringTableIgnored())
+	case "":
+	default:
+		return nil, fmt.Errorf("invalid str-table flag value: %s", flag)
+	}
+	return opts, nil
 }

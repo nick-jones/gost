@@ -10,7 +10,7 @@ import (
 )
 
 // EvaluateIndirectReferences scans for indirect references to the supplied address range and returns candidates
-func EvaluateIndirectReferences(f *exe.File, strRange address.Range) ([]Candidate, error) {
+func EvaluateIndirectReferences(f *exe.File, strRange *address.Range) ([]Candidate, error) {
 	refs, err := findInterfaceReferences(f)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func EvaluateIndirectReferences(f *exe.File, strRange address.Range) ([]Candidat
 			return nil, err
 		}
 		strPtr := readUint64(strPtrBuf, f.ByteOrder())
-		if !strRange.Contains(strPtr) {
+		if strRange != nil && !strRange.Contains(strPtr) {
 			continue
 		}
 

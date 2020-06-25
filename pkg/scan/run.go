@@ -29,16 +29,25 @@ type Reference struct {
 }
 
 // Run performs analysis over data read from the supplied reader and returns potential strings
-func Run(r io.ReaderAt) ([]Result, error) {
+func Run(r io.ReaderAt, opts ...Option) ([]Result, error) {
+	runOptions := &RunOptions{}
+	for _, o := range opts {
+		o(runOptions)
+	}
+
 	f, err := exe.New(r)
 	if err != nil {
 		return nil, fmt.Errorf("invalid file: %w", err)
 	}
 
-	// locate address range for go.string.*
-	strRange, err := strtable.Locate(f)
-	if err != nil {
-		return nil, fmt.Errorf("failed to locate string table: %w", err)
+	var strRange *address.Range
+	if !runOptions.ignoreStringTable {
+		// locate address range for go.string.*
+		located, err := strtable.Locate(f, runOptions.guessStringTable)
+		if err != nil {
+			return nil, fmt.Errorf("failed to locate string table: %w", err)
+		}
+		strRange = &located
 	}
 
 	// search for strings referenced in instructions
@@ -56,14 +65,13 @@ func Run(r io.ReaderAt) ([]Result, error) {
 	// merge candidates
 	candidates := dedupeCandidates(append(candidates1, candidates2...))
 
-	return buildResults(candidates, f, strRange)
+	return buildResults(candidates, f)
 }
 
-func buildResults(candidates []analysis.Candidate, f *exe.File, strRange address.Range) ([]Result, error) {
-	// find section the go.string.* range resides in (should be __rodata)
-	sect, err := f.SectionContainingRange(strRange)
+func buildResults(candidates []analysis.Candidate, f *exe.File) ([]Result, error) {
+	sect, err := f.RODataSection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to locate section for range: %w", err)
+		return nil, err
 	}
 
 	symtab, err := createSymtab(f)
@@ -71,8 +79,11 @@ func buildResults(candidates []analysis.Candidate, f *exe.File, strRange address
 		return nil, fmt.Errorf("failed to create symtab: %w", err)
 	}
 
-	results := make([]Result, len(candidates))
-	for i, candidate := range candidates {
+	results := make([]Result, 0, len(candidates))
+	for _, candidate := range candidates {
+		if !sect.AddrRange.Contains(candidate.Addr) || !sect.AddrRange.Contains(candidate.Addr+candidate.Len) {
+			continue // ignore if the address isn't in __rodata
+		}
 		buf := make([]byte, candidate.Len)
 		if _, err := sect.ReadAt(buf, int64(candidate.Addr-sect.AddrRange.Start)); err != nil {
 			return nil, fmt.Errorf("failed to read data: %w", err)
@@ -90,7 +101,7 @@ func buildResults(candidates []analysis.Candidate, f *exe.File, strRange address
 			}
 			res.Refs = append(res.Refs, ref)
 		}
-		results[i] = res
+		results = append(results, res)
 	}
 
 	sort.Slice(results, func(i, j int) bool {

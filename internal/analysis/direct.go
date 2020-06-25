@@ -10,7 +10,7 @@ import (
 )
 
 // EvaluateDirectReferences scans for direct references to the supplied address range and returns candidates
-func EvaluateDirectReferences(f *exe.File, strRange address.Range) ([]Candidate, error) {
+func EvaluateDirectReferences(f *exe.File, strRange *address.Range) ([]Candidate, error) {
 	// the __text section contains executable instructions
 	txt, err := f.TextSection()
 	if err != nil {
@@ -53,14 +53,16 @@ func EvaluateDirectReferences(f *exe.File, strRange address.Range) ([]Candidate,
 			offset := uint64(readUint32(data[m.Index+matcher.offsetPos:m.Index+matcher.offsetPos+matcher.offsetLen], f.ByteOrder()))
 			checkAddr := relAddr + offset
 
-			if strRange.Contains(checkAddr) {
-				length := uint64(readUint32(data[m.Index+matcher.lenPos:m.Index+matcher.lenPos+matcher.lenSize], f.ByteOrder()))
-				candidates = append(candidates, Candidate{
-					Addr:     checkAddr,
-					Len:      length,
-					RefAddrs: []uint64{txt.AddrRange.Start + uint64(m.Index+matcher.insPos)},
-				})
+			if strRange != nil && !strRange.Contains(checkAddr) {
+				continue
 			}
+
+			length := uint64(readUint32(data[m.Index+matcher.lenPos:m.Index+matcher.lenPos+matcher.lenSize], f.ByteOrder()))
+			candidates = append(candidates, Candidate{
+				Addr:     checkAddr,
+				Len:      length,
+				RefAddrs: []uint64{txt.AddrRange.Start + uint64(m.Index+matcher.insPos)},
+			})
 		}
 	}
 	return candidates, nil
