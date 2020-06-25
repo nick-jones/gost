@@ -390,7 +390,7 @@ re-arranging to get those 8 bytes as big endian:
 
 ```
 little endian: 0600000000000000
-big endiate:   0000000000000006
+big endian:    0000000000000006
 ```
 
 OK, so a value of 6! That matches nicely.
