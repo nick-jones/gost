@@ -1,20 +1,27 @@
 package scan
 
 type RunOptions struct {
-	ignoreStringTable bool
-	guessStringTable  bool
+	stringTableIgnore bool
+	stringTableGuess  bool
+	noNulls           bool
 }
 
 type Option func(*RunOptions)
 
 func WithStringTableIgnored() Option {
 	return func(o *RunOptions) {
-		o.ignoreStringTable = true
+		o.stringTableIgnore = true
 	}
 }
 
 func WithStringTableGuessed() Option {
 	return func(o *RunOptions) {
-		o.guessStringTable = true
+		o.stringTableGuess = true
+	}
+}
+
+func WithNoNulls() Option {
+	return func(o *RunOptions) {
+		o.noNulls = true
 	}
 }

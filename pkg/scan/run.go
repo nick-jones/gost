@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"bytes"
 	"debug/gosym"
 	"fmt"
 	"io"
@@ -41,9 +42,9 @@ func Run(r io.ReaderAt, opts ...Option) ([]Result, error) {
 	}
 
 	var strRange *address.Range
-	if !runOptions.ignoreStringTable {
+	if !runOptions.stringTableIgnore {
 		// locate address range for go.string.*
-		located, err := strtable.Locate(f, runOptions.guessStringTable)
+		located, err := strtable.Locate(f, runOptions.stringTableGuess)
 		if err != nil {
 			return nil, fmt.Errorf("failed to locate string table: %w", err)
 		}
@@ -65,10 +66,10 @@ func Run(r io.ReaderAt, opts ...Option) ([]Result, error) {
 	// merge candidates
 	candidates := dedupeCandidates(append(candidates1, candidates2...))
 
-	return buildResults(candidates, f)
+	return buildResults(candidates, f, runOptions)
 }
 
-func buildResults(candidates []analysis.Candidate, f *exe.File) ([]Result, error) {
+func buildResults(candidates []analysis.Candidate, f *exe.File, opts *RunOptions) ([]Result, error) {
 	sect, err := f.RODataSection()
 	if err != nil {
 		return nil, err
@@ -84,9 +85,15 @@ func buildResults(candidates []analysis.Candidate, f *exe.File) ([]Result, error
 		if !sect.AddrRange.Contains(candidate.Addr) || !sect.AddrRange.Contains(candidate.Addr+candidate.Len) {
 			continue // ignore if the address isn't in __rodata
 		}
+		if candidate.Len == 0 {
+			continue // ignore empty strings - all observed cases are false positives (real empty strings manifest differently)
+		}
 		buf := make([]byte, candidate.Len)
 		if _, err := sect.ReadAt(buf, int64(candidate.Addr-sect.AddrRange.Start)); err != nil {
 			return nil, fmt.Errorf("failed to read data: %w", err)
+		}
+		if opts.noNulls && bytes.IndexByte(buf, 0x00) != -1 {
+			continue // string contains nulls, ignore
 		}
 		res := Result{
 			Addr:  candidate.Addr,

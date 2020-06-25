@@ -22,13 +22,18 @@ func main() {
 		Name: "gost",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "string-table",
-				Usage: `if symbols are missing, use values "guess" or "ignore" to enable more fuzzy matching`,
-			},
-			&cli.StringFlag{
 				Name:  "template",
 				Usage: "template string for printing the results (format is text/template)",
 				Value: tmpl,
+			},
+			&cli.StringFlag{
+				Name:  "string-table",
+				Usage: `if symbols are missing, use values "guess" or "ignore" to enable more fuzzy matching`,
+			},
+			&cli.BoolFlag{
+				Name:  "no-nulls",
+				Usage: "strings containing null characters will be ignored",
+				Value: true,
 			},
 		},
 		Action: run,
@@ -78,6 +83,7 @@ func run(c *cli.Context) error {
 
 func parseFlags(c *cli.Context) ([]scan.Option, error) {
 	opts := make([]scan.Option, 0)
+
 	switch flag := c.String("string-table"); flag {
 	case "guess":
 		opts = append(opts, scan.WithStringTableGuessed())
@@ -87,5 +93,10 @@ func parseFlags(c *cli.Context) ([]scan.Option, error) {
 	default:
 		return nil, fmt.Errorf("invalid str-table flag value: %s", flag)
 	}
+
+	if c.Bool("no-nulls") {
+		opts = append(opts, scan.WithNoNulls())
+	}
+
 	return opts, nil
 }
