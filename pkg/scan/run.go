@@ -92,7 +92,7 @@ func buildResults(candidates []analysis.Candidate, f *exe.File, opts *RunOptions
 		if _, err := sect.ReadAt(buf, int64(candidate.Addr-sect.AddrRange.Start)); err != nil {
 			return nil, fmt.Errorf("failed to read data: %w", err)
 		}
-		if opts.noNulls && bytes.IndexByte(buf, 0x00) != -1 {
+		if !opts.permitNulls && bytes.IndexByte(buf, 0x00) != -1 {
 			continue // string contains nulls, ignore
 		}
 		res := Result{

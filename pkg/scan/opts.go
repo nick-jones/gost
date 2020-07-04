@@ -3,7 +3,7 @@ package scan
 type RunOptions struct {
 	stringTableIgnore bool
 	stringTableGuess  bool
-	noNulls           bool
+	permitNulls       bool
 }
 
 type Option func(*RunOptions)
@@ -20,8 +20,8 @@ func WithStringTableGuessed() Option {
 	}
 }
 
-func WithNoNulls() Option {
+func WithNullsPermitted() Option {
 	return func(o *RunOptions) {
-		o.noNulls = true
+		o.permitNulls = true
 	}
 }

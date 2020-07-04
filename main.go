@@ -31,9 +31,8 @@ func main() {
 				Usage: `if symbols are missing, use values "guess" or "ignore" to enable more fuzzy matching`,
 			},
 			&cli.BoolFlag{
-				Name:  "no-nulls",
-				Usage: "strings containing null characters will be ignored",
-				Value: true,
+				Name:  "nulls",
+				Usage: "string candidates containing null characters will be included",
 			},
 		},
 		Action: run,
@@ -94,8 +93,8 @@ func parseFlags(c *cli.Context) ([]scan.Option, error) {
 		return nil, fmt.Errorf("invalid str-table flag value: %s", flag)
 	}
 
-	if c.Bool("no-nulls") {
-		opts = append(opts, scan.WithNoNulls())
+	if c.Bool("nulls") {
+		opts = append(opts, scan.WithNullsPermitted())
 	}
 
 	return opts, nil
