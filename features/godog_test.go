@@ -11,15 +11,17 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	status := godog.RunWithOptions("godog", func(s *godog.Suite) {
-		FeatureContext(s)
-	}, godog.Options{
-		Format:    "pretty",
-		Paths:     []string{"./"},
-		Randomize: time.Now().UTC().UnixNano(),
-		Tags:      "~@wip",
-		Strict:    true,
-	})
+	status := godog.TestSuite{
+		Name:                "gost",
+		ScenarioInitializer: InitializeScenario,
+		Options: &godog.Options{
+			Format:    "pretty",
+			Paths:     []string{"./"},
+			Randomize: time.Now().UTC().UnixNano(),
+			Tags:      "~@wip",
+			Strict:    true,
+		},
+	}.Run()
 
 	if st := m.Run(); st > status {
 		status = st
@@ -27,6 +29,7 @@ func TestMain(m *testing.M) {
 	os.Exit(status)
 }
 
-func FeatureContext(s *godog.Suite) {
-	internal.NewContext().RegisterHooks(s)
+
+func InitializeScenario(sc *godog.ScenarioContext) {
+	internal.NewContext().RegisterHooks(sc)
 }

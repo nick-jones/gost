@@ -129,8 +129,8 @@ func equalStringSlice(a, b []string) bool {
 	return true
 }
 
-func (c *Context) RegisterHooks(s *godog.Suite) {
-	s.AfterScenario(func(_ *messages.Pickle, err error) {
+func (c *Context) RegisterHooks(sc *godog.ScenarioContext) {
+	sc.AfterScenario(func(_ *messages.Pickle, err error) {
 		if err == nil && c.tempDir != "" {
 			_ = os.RemoveAll(c.tempDir)
 		}
@@ -138,7 +138,7 @@ func (c *Context) RegisterHooks(s *godog.Suite) {
 		c.results = nil
 	})
 
-	s.Step(`^a binary built from source file (.+):$`, c.aBinaryBuiltFromSourceFile)
-	s.Step(`^that binary is analysed$`, c.thatBinaryIsAnalysed)
-	s.Step(`^the following results are returned:$`, c.theFollowingResultsAreReturned)
+	sc.Step(`^a binary built from source file (.+):$`, c.aBinaryBuiltFromSourceFile)
+	sc.Step(`^that binary is analysed$`, c.thatBinaryIsAnalysed)
+	sc.Step(`^the following results are returned:$`, c.theFollowingResultsAreReturned)
 }
