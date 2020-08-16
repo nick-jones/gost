@@ -337,4 +337,19 @@ var directMatchers = []directMatcher{
 		arg1Pos:   18,
 		arg2Pos:   3,
 	},
+	{
+		// const into struct (2)
+		pattern: []byte{
+			0x48, 0xc7, 0x47, wild, wild, wild, wild, wild, // mov qword ptr [rdi + ?], ????
+			0x48, 0x8d, 0x05, wild, wild, wild, wild, // lea rax, [rip + ????]
+			0x48, 0x89, 0x47, wild, // mov qword ptr [rdi + ?], rax
+		},
+		insPos:    8,
+		offsetPos: 11,
+		offsetLen: 4,
+		lenPos:    4,
+		lenSize:   4,
+		arg1Pos:   18,
+		arg2Pos:   3,
+	},
 }
