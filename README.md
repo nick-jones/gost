@@ -34,14 +34,20 @@ As a quick measure we can run `gost` against itself and obtain strings reference
 ```
 $ go build
 $ ./gost gost | rg 'main\.go'
-123608e: "gost" → /Users/nicholas/Dev/gost/main.go:23 
-1239401: "template" → /Users/nicholas/Dev/gost/main.go:26 
-123eed1: "failed to open file: %w" → /Users/nicholas/Dev/gost/main.go:50 
-1240f88: "failed to execute template: %w" → /Users/nicholas/Dev/gost/main.go:63 
-1241408: "failed to parse format flag: %w" → /Users/nicholas/Dev/gost/main.go:45 
-1241f57: "failed to search instructions: %w" → /Users/nicholas/Dev/gost/main.go:57 
-1246495: "template string for printing the results (format is text/template)" → /Users/nicholas/Dev/gost/main.go:27 
-1246a1c: "{{printf \"%x: %q\" .Addr .Value}} → {{range $i, $e := .Refs}}\n{{- if le $i 5}}{{ printf \"%s:%d \" .File .Line }}{{end}}\n{{- end}}\n{{- if gt (len .Refs) 5}}... (truncated, {{len .Refs}} total){{- end -}}\n" → /Users/nicholas/Dev/gost/main.go:28 
+123b852: "gost" → /Users/nicholas/Dev/gost/main.go:22 
+123c1f6: "nulls" → /Users/nicholas/Dev/gost/main.go:34 
+123ec66: "template" → /usr/local/Cellar/go/1.15.4/libexec/src/text/template/parse/lex.go:84 /Users/nicholas/Dev/gost/main.go:25 
+12409a8: "string-table" → /Users/nicholas/Dev/gost/main.go:30 /Users/nicholas/Dev/gost/main.go:86 
+12448af: "failed to open file: %w" → /Users/nicholas/Dev/gost/main.go:57 
+1245257: "failed to parse flags: %w" → /Users/nicholas/Dev/gost/main.go:63 
+124693a: "failed to execute template: %w" → /Users/nicholas/Dev/gost/main.go:75 
+1246dba: "failed to parse format flag: %w" → /Users/nicholas/Dev/gost/main.go:52 
+12473fb: "invalid str-table flag value: %s" → /Users/nicholas/Dev/gost/main.go:93 
+124796a: "failed to search instructions: %w" → /Users/nicholas/Dev/gost/main.go:69 
+124bdab: "string candidates containing null characters will be included" → /Users/nicholas/Dev/gost/main.go:35 
+124c066: "template string for printing the results (format is text/template)" → /Users/nicholas/Dev/gost/main.go:26 
+124c2a9: "if symbols are missing, use values \"guess\" or \"ignore\" to enable more fuzzy matching" → /Users/nicholas/Dev/gost/main.go:31 
+124c641: "{{printf \"%x: %q\" .Addr .Value}} → {{range $i, $e := .Refs}}\n{{- if le $i 5}}{{ printf \"%s:%d \" .File .Line }}{{end}}\n{{- end}}\n{{- if gt (len .Refs) 5}}... (truncated, {{len .Refs}} total){{- end -}}\n" → /Users/nicholas/Dev/gost/main.go:27
 ```
 
 ## Fuzzing
