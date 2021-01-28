@@ -44,9 +44,9 @@ var directMatchers = []directMatcher{
 	{
 		// first argument to a function (2)
 		pattern: []byte{
-			0x48, 0x8d, 0x15, wild, wild, wild, wild, // lea rdx, [rip + 114835]
+			0x48, 0x8d, 0x15, wild, wild, wild, wild, // lea rdx, [rip + ????]
 			0x48, 0x89, 0x14, 0x24, // mov qword ptr [rsp], rdx
-			0x48, 0xc7, 0x44, 0x24, 0x08, wild, wild, wild, wild, // mov  qword ptr [rsp + 8], 5
+			0x48, 0xc7, 0x44, 0x24, 0x08, wild, wild, wild, wild, // mov  qword ptr [rsp + 8], ????
 		},
 		insPos:    0,
 		offsetPos: 3,
@@ -59,9 +59,9 @@ var directMatchers = []directMatcher{
 	{
 		// first argument to a function (3)
 		pattern: []byte{
-			0x48, 0x8d, 0x0d, wild, wild, wild, wild, // lea rcx, [rip + 212126]
+			0x48, 0x8d, 0x0d, wild, wild, wild, wild, // lea rcx, [rip + ????]
 			0x48, 0x89, 0x0c, 0x24, // mov qword ptr [rsp], rcx
-			0x48, 0xc7, 0x44, 0x24, 0x08, wild, wild, wild, wild, // mov qword ptr [rsp + 8], 13
+			0x48, 0xc7, 0x44, 0x24, 0x08, wild, wild, wild, wild, // mov qword ptr [rsp + 8], ????
 		},
 		insPos:    0,
 		offsetPos: 3,
@@ -106,9 +106,9 @@ var directMatchers = []directMatcher{
 		pattern: []byte{
 			0x48, 0x8d, 0x0d, wild, wild, wild, wild, // lea rcx, [rip + ????]
 			0x48, 0x89, 0x0c, 0x24, // mov qword ptr [rsp], rcx
-			0x48, 0xc7, 0x44, 0x24, wild, wild, wild, wild, wild, // mov qword ptr [rsp + 8], 6
+			0x48, 0xc7, 0x44, 0x24, wild, wild, wild, wild, wild, // mov qword ptr [rsp + ?], ????
 			0xe8, wild, wild, wild, wild, // call ? <runtime.convTstring>
-			0x48, 0x8b, 0x44, 0x24, wild, // mov rax, qword ptr [rsp + 16]
+			0x48, 0x8b, 0x44, 0x24, wild, // mov rax, qword ptr [rsp + ?]
 		},
 		insPos:    0,
 		offsetPos: 3,
@@ -263,7 +263,7 @@ var directMatchers = []directMatcher{
 	{
 		// string into struct (6)
 		pattern: []byte{
-			0x48, 0xc7, 0x40, wild, wild, wild, wild, wild, // mov qword ptr [rax + 8], ????
+			0x48, 0xc7, 0x40, wild, wild, wild, wild, wild, // mov qword ptr [rax + ?], ????
 			0x48, 0x8d, 0x0d, wild, wild, wild, wild, // lea rcx, [rip + ????]
 			0x48, 0x89, 0x08, // mov qword ptr [rax], rcx
 		},
@@ -279,8 +279,8 @@ var directMatchers = []directMatcher{
 		// string into struct (7)
 		pattern: []byte{
 			0x48, 0x8d, 0x05, wild, wild, wild, wild, // lea rax, [rip + ????]
-			0x48, 0x89, 0x84, 0x24, wild, wild, wild, wild, // mov qword ptr [rsp + 136], rax
-			0x48, 0xc7, 0x84, 0x24, wild, wild, wild, wild, wild, wild, wild, wild, // mov  qword ptr [rsp + 144], 6
+			0x48, 0x89, 0x84, 0x24, wild, wild, wild, wild, // mov qword ptr [rsp + ????], rax
+			0x48, 0xc7, 0x84, 0x24, wild, wild, wild, wild, wild, wild, wild, wild, // mov  qword ptr [rsp + ????], ????
 		},
 		insPos:    0,
 		offsetPos: 3,
