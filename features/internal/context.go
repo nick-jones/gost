@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v10"
+	"github.com/cucumber/messages-go/v16"
 
 	"github.com/nick-jones/gost/pkg/scan"
 )
@@ -23,7 +24,7 @@ func NewContext() *Context {
 	return &Context{}
 }
 
-func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *messages.PickleStepArgument_PickleDocString) error {
+func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *messages.PickleDocString) error {
 	goBin, err := exec.LookPath("go")
 	if err != nil {
 		return err
@@ -68,7 +69,7 @@ func (c *Context) thatBinaryIsAnalysed() error {
 	return nil
 }
 
-func (c *Context) theFollowingResultsAreReturned(table *messages.PickleStepArgument_PickleTable) error {
+func (c *Context) theFollowingResultsAreReturned(table *messages.PickleTable) error {
 	type summary struct {
 		val      string
 		fileRefs []string
@@ -130,12 +131,13 @@ func equalStringSlice(a, b []string) bool {
 }
 
 func (c *Context) RegisterHooks(sc *godog.ScenarioContext) {
-	sc.AfterScenario(func(_ *messages.Pickle, err error) {
+	sc.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		if err == nil && c.tempDir != "" {
 			_ = os.RemoveAll(c.tempDir)
 		}
 		c.tempDir = ""
 		c.results = nil
+		return ctx, err
 	})
 
 	sc.Step(`^a binary built from source file (.+):$`, c.aBinaryBuiltFromSourceFile)
