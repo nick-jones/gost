@@ -305,7 +305,7 @@ Feature: String Extraction
       | banana | main.go:7       | main.main         |
       | apple  | main.go:8       | main.main         |
 
-  Scenario: Slice (2) - PCLN gets this wrong
+  Scenario: Slice (2)
     Given a binary built from source file main.go:
     """
     package main
@@ -325,10 +325,10 @@ Feature: String Extraction
     When that binary is analysed
     Then the following results are returned:
       | String | File References | Symbol References |
-      | banana | main.go:8       | main.main         |
+      | banana | main.go:9       | main.main         |
       | apple  | main.go:10      | main.main         |
 
-  Scenario: Slice (3) - PCLN gets this wrong
+  Scenario: Slice (3)
     Given a binary built from source file main.go:
     """
     package main
@@ -349,7 +349,7 @@ Feature: String Extraction
     Then the following results are returned:
       | String | File References | Symbol References |
       | banana | main.go:9       | main.main         |
-      | apple  | main.go:9       | main.main         |
+      | apple  | main.go:10       | main.main         |
 
   Scenario: Struct slice
     Given a binary built from source file main.go:
@@ -605,6 +605,7 @@ Feature: String Extraction
       | banana        | main.go:14      | main.isBanana     |
       | no banana: %s | main.go:17      | main.isBanana     |
 
+  @wip
   Scenario: Mixed
     Given a binary built from source file main.go:
     """

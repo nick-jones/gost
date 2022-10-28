@@ -63,4 +63,32 @@ var indirectMatchers = []indirectMatcher{
 		arg1Pos:              11,
 		arg2Pos:              26,
 	},
+	{
+		pattern: []byte{
+			0x48, 0x8d, 0x15, wild, wild, wild, wild, // lea rdx, [rip + ????]
+			0x48, 0x89, 0x54, 0x24, wild, // mov qword ptr [rsp + ?], rdx
+			0x48, 0x8d, 0x15, wild, wild, wild, wild, // lea rdx, [rip + ????]
+			0x48, 0x89, 0x54, 0x24, wild, // mov qword ptr [rsp + ?], rdx
+		},
+		insPos:               12,
+		typeOffsetPos:        3,
+		typeOffsetLen:        4,
+		valueHeaderOffsetPos: 15,
+		valueHeaderOffsetLen: 4,
+		arg1Pos:              11,
+		arg2Pos:              23,
+	},
+	{
+		pattern: []byte{
+			0x48, 0x8d, 0x05, wild, wild, wild, wild, // lea rax, [rip + ????]
+			0x48, 0x8d, 0x1d, wild, wild, wild, wild, // lea rbx, [rip + ????]
+		},
+		insPos:               7,
+		typeOffsetPos:        3,
+		typeOffsetLen:        4,
+		valueHeaderOffsetPos: 10,
+		valueHeaderOffsetLen: 4,
+		arg1Pos:              -1,
+		arg2Pos:              -1,
+	},
 }

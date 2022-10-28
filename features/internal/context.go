@@ -135,7 +135,7 @@ func (c *Context) RegisterHooks(sc *godog.ScenarioContext) {
 		}
 		c.tempDir = ""
 		c.results = nil
-		return ctx, err
+		return ctx, nil
 	})
 
 	sc.Step(`^a binary built from source file (.+):$`, c.aBinaryBuiltFromSourceFile)

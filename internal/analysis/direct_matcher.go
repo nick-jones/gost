@@ -280,7 +280,7 @@ var directMatchers = []directMatcher{
 		pattern: []byte{
 			0x48, 0x8d, 0x05, wild, wild, wild, wild, // lea rax, [rip + ????]
 			0x48, 0x89, 0x84, 0x24, wild, wild, wild, wild, // mov qword ptr [rsp + ????], rax
-			0x48, 0xc7, 0x84, 0x24, wild, wild, wild, wild, wild, wild, wild, wild, // mov  qword ptr [rsp + ????], ????
+			0x48, 0xc7, 0x84, 0x24, wild, wild, wild, wild, wild, wild, wild, wild, // mov qword ptr [rsp + ????], ????
 		},
 		insPos:    0,
 		offsetPos: 3,
@@ -305,6 +305,23 @@ var directMatchers = []directMatcher{
 		lenPos:    4,
 		lenSize:   4,
 		arg1Pos:   31,
+		arg2Pos:   3,
+	},
+	{
+		// string into struct (9) - direct assignment
+		pattern: []byte{
+			0x48, 0xc7, 0x40, wild, wild, wild, wild, wild, // mov qword ptr [rax + ?], ????
+			0x83, 0x3d, wild, wild, wild, wild, wild, // cmp dword ptr [rip + ????], 0
+			0x75, wild, // jne ?
+			0x48, 0x8d, 0x15, wild, wild, wild, wild, // lea rdx, [rip + ????]
+			0x48, 0x89, 0x10, // mov qword ptr [rax], rdx
+		},
+		insPos:    17,
+		offsetPos: 20,
+		offsetLen: 4,
+		lenPos:    4,
+		lenSize:   4,
+		arg1Pos:   -1,
 		arg2Pos:   3,
 	},
 	{
@@ -351,5 +368,89 @@ var directMatchers = []directMatcher{
 		lenSize:   4,
 		arg1Pos:   18,
 		arg2Pos:   3,
+	},
+	{
+		// first argument to a function (new ABI)
+		pattern: []byte{
+			0x48, 0x8d, 0x05, wild, wild, wild, wild, // lea rax, [rip + ????]
+			0xbb, wild, wild, wild, wild, // mov ebx, ????
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    8,
+		lenSize:   4,
+		arg1Pos:   -1,
+		arg2Pos:   -1,
+	},
+	{
+		// string concat (new ABI)
+		pattern: []byte{
+			0x48, 0x8d, 0x3d, wild, wild, wild, wild, // lea rdi, [rip + ????]
+			0xbe, wild, wild, wild, wild, // mov esi, ????
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    8,
+		lenSize:   4,
+		arg1Pos:   -1,
+		arg2Pos:   -1,
+	},
+	{
+		// string suffix check (new ABI)
+		pattern: []byte{
+			0x48, 0x8d, 0x1d, wild, wild, wild, wild, // lea rbx, [rip + ????]
+			0xb9, wild, wild, wild, wild, // mov ecx, ????
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    8,
+		lenSize:   4,
+		arg1Pos:   -1,
+		arg2Pos:   -1,
+	},
+	{
+		// string suffix check (new ABI)
+		pattern: []byte{
+			0x48, 0x8d, 0x0d, wild, wild, wild, wild, // lea rcx, [rip + ????]
+			0xbf, wild, wild, wild, wild, // mov edi, ????
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    8,
+		lenSize:   4,
+		arg1Pos:   -1,
+		arg2Pos:   -1,
+	},
+	{
+		// string concat (new ABI)
+		pattern: []byte{
+			0x4c, 0x8d, 0x05, wild, wild, wild, wild, // lea r8, [rip + ????]
+			0x41, 0xb9, wild, wild, wild, wild, // mov r9d, ????
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    9,
+		lenSize:   4,
+		arg1Pos:   -1,
+		arg2Pos:   -1,
+	},
+	{
+		// string in struct (new ABI)
+		pattern: []byte{
+			0x48, 0x8d, 0x35, wild, wild, wild, wild, // lea rsi, [rip + ????]
+			0x41, 0xb8, wild, wild, wild, wild, // mov r8d, ????
+		},
+		insPos:    0,
+		offsetPos: 3,
+		offsetLen: 4,
+		lenPos:    9,
+		lenSize:   4,
+		arg1Pos:   -1,
+		arg2Pos:   -1,
 	},
 }

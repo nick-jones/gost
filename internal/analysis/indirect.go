@@ -94,16 +94,23 @@ func findInterfaceReferences(f *exe.File) ([]interfaceReference, error) {
 	for _, m := range matched {
 		matcher := indirectMatchers[m.Pattern] // locate original indirectMatcher
 
-		var arg1, arg2 int
+		var (
+			arg1, arg2   int
+			skipArgCheck = true
+		)
 		if matcher.arg1Pos >= 0 {
 			// extract the stack pointer offset for the first argument (pointer to string value). If a position is not
 			// supplied, we assume zero offset
 			arg1 = int(data[m.Index+matcher.arg1Pos])
+			skipArgCheck = false
 		}
-		// extract the stack pointer offset for the second argument (string length)
-		arg2 = int(data[m.Index+matcher.arg2Pos])
+		if matcher.arg2Pos >= 0 {
+			// extract the stack pointer offset for the second argument (string length)
+			arg2 = int(data[m.Index+matcher.arg2Pos])
+			skipArgCheck = false
+		}
 
-		if arg1%8 == 0 && arg2 == arg1+8 {
+		if (arg1%8 == 0 && arg2 == arg1+8) || skipArgCheck {
 			refAddr := txt.AddrRange.Start + uint64(m.Index+matcher.insPos)
 			typeRelAddr := txt.AddrRange.Start + uint64(m.Index+matcher.typeOffsetPos+matcher.typeOffsetLen)
 			typeOffset := uint64(readUint32(data[m.Index+matcher.typeOffsetPos:m.Index+matcher.typeOffsetPos+matcher.typeOffsetLen], f.ByteOrder()))

@@ -36,19 +36,26 @@ func EvaluateDirectReferences(f *exe.File, strRange *address.Range) ([]Candidate
 	for _, m := range matched {
 		matcher := directMatchers[m.Pattern] // locate original directMatcher
 
-		var arg1, arg2 int
+		var (
+			arg1, arg2   int
+			skipArgCheck = true
+		)
 		if matcher.arg1Pos >= 0 {
 			// extract the stack pointer offset for the first argument (pointer to string value). If a position is not
 			// supplied, we assume zero offset
 			arg1 = int(data[m.Index+matcher.arg1Pos])
+			skipArgCheck = false
 		}
-		// extract the stack pointer offset for the second argument (string length)
-		arg2 = int(data[m.Index+matcher.arg2Pos])
+		if matcher.arg2Pos >= 0 {
+			// extract the stack pointer offset for the second argument (string length)
+			arg2 = int(data[m.Index+matcher.arg2Pos])
+			skipArgCheck = false
+		}
 
 		// the string and length are always passed around together. Since the Go compiler uses the stack to pass
 		// arguments (i.e. doesn't use System V), we can use this as an additional heuristic; a pointer to the string
 		// value should be set into the stack. The length should be set +8 bytes from that.
-		if arg1%8 == 0 && arg2 == arg1+8 {
+		if arg1%8 == 0 && arg2 == arg1+8 || skipArgCheck {
 			relAddr := txt.AddrRange.Start + uint64(m.Index+matcher.offsetPos+matcher.offsetLen)
 			offset := uint64(readUint32(data[m.Index+matcher.offsetPos:m.Index+matcher.offsetPos+matcher.offsetLen], f.ByteOrder()))
 			checkAddr := relAddr + offset

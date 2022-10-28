@@ -29,7 +29,6 @@ func TestMain(m *testing.M) {
 	os.Exit(status)
 }
 
-
 func InitializeScenario(sc *godog.ScenarioContext) {
 	internal.NewContext().RegisterHooks(sc)
 }
