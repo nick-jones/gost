@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v16"
 
 	"github.com/nick-jones/gost/pkg/scan"
 )
@@ -24,7 +23,7 @@ func NewContext() *Context {
 	return &Context{}
 }
 
-func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *messages.PickleDocString) error {
+func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *godog.DocString) error {
 	goBin, err := exec.LookPath("go")
 	if err != nil {
 		return err
@@ -69,7 +68,7 @@ func (c *Context) thatBinaryIsAnalysed() error {
 	return nil
 }
 
-func (c *Context) theFollowingResultsAreReturned(table *messages.PickleTable) error {
+func (c *Context) theFollowingResultsAreReturned(table *godog.Table) error {
 	type summary struct {
 		val      string
 		fileRefs []string
