@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,13 +28,13 @@ func (c *Context) aBinaryBuiltFromSourceFile(fileName string, src *godog.DocStri
 		return err
 	}
 
-	c.tempDir, err = ioutil.TempDir("", "gost")
+	c.tempDir, err = os.MkdirTemp("", "gost")
 	if err != nil {
 		return err
 	}
 
 	srcFile := filepath.Join(c.tempDir, fileName)
-	if err := ioutil.WriteFile(srcFile, []byte(src.Content), 0600); err != nil {
+	if err := os.WriteFile(srcFile, []byte(src.Content), 0600); err != nil {
 		return err
 	}
 
