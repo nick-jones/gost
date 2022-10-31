@@ -40,7 +40,7 @@ func (m *machoFile) TextSection() (Section, error) {
 	return m.section("__text")
 }
 
-// TextSection locates and returns __rodata
+// RODataSection locates and returns __rodata
 func (m *machoFile) RODataSection() (Section, error) {
 	return m.section("__rodata")
 }

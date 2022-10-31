@@ -46,12 +46,12 @@ func (e *elfFile) TextSection() (Section, error) {
 	return e.section(".text")
 }
 
-// TextSection locates and returns .rodata
+// RODataSection locates and returns .rodata
 func (e *elfFile) RODataSection() (Section, error) {
 	return e.section(".rodata")
 }
 
-// TextSection locates and returns .gopclntab
+// PCLNTabSection locates and returns .gopclntab
 func (e *elfFile) PCLNTabSection() (Section, error) {
 	return e.section(".gopclntab")
 }
